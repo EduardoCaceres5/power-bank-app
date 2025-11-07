@@ -22,6 +22,7 @@ import {
 import { ViewIcon, ViewOffIcon, EmailIcon, LockIcon } from '@chakra-ui/icons';
 import { MdBatteryChargingFull, MdPower, MdElectricBolt } from 'react-icons/md';
 import { useAuth } from '@/contexts/AuthContext';
+import { Logo } from '@/components';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -33,13 +34,13 @@ export default function Login() {
   const { login } = useAuth();
   const toast = useToast();
 
-  // Theme colors
+  // Theme colors - Using neon green brand colors
   const bgGradient = useColorModeValue(
-    'linear(to-br, blue.50, green.50, yellow.50)',
-    'linear(to-br, gray.900, blue.900, green.900)'
+    'linear(to-br, gray.50, green.50)',
+    'linear(to-br, dark.500, dark.400, dark.300)'
   );
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const iconColor = useColorModeValue('blue.500', 'blue.300');
+  const cardBg = useColorModeValue('white', 'dark.400');
+  const iconColor = useColorModeValue('brand.500', 'brand.300');
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -97,15 +98,15 @@ export default function Login() {
 
   return (
     <Flex minH="100vh" bgGradient={bgGradient} align="center" justify="center" position="relative">
-      {/* Decorative Power Icons */}
+      {/* Decorative Power Icons - Using brand colors */}
       <Icon
         as={MdBatteryChargingFull}
         position="absolute"
         top="10%"
         left="10%"
         boxSize={12}
-        color={iconColor}
-        opacity={0.3}
+        color="brand.500"
+        opacity={0.2}
         transform="rotate(-15deg)"
       />
       <Icon
@@ -114,8 +115,8 @@ export default function Login() {
         top="20%"
         right="15%"
         boxSize={10}
-        color="yellow.400"
-        opacity={0.3}
+        color="secondary.500"
+        opacity={0.2}
         transform="rotate(25deg)"
       />
       <Icon
@@ -124,8 +125,8 @@ export default function Login() {
         bottom="15%"
         left="15%"
         boxSize={10}
-        color="green.400"
-        opacity={0.3}
+        color="brand.300"
+        opacity={0.2}
         transform="rotate(-10deg)"
       />
       <Icon
@@ -134,8 +135,8 @@ export default function Login() {
         bottom="20%"
         right="10%"
         boxSize={12}
-        color={iconColor}
-        opacity={0.3}
+        color="secondary.300"
+        opacity={0.2}
         transform="rotate(15deg)"
       />
 
@@ -151,23 +152,21 @@ export default function Login() {
           <VStack spacing={8} align="stretch">
             {/* Logo and Title Section */}
             <VStack spacing={4}>
-              <Box
-                p={4}
-                bg={useColorModeValue('blue.50', 'blue.900')}
-                borderRadius="full"
-                display="inline-block"
-              >
-                <Icon as={MdBatteryChargingFull} boxSize={12} color={iconColor} />
-              </Box>
+              <Logo height="60px" />
               <Heading
                 size="xl"
                 textAlign="center"
-                bgGradient="linear(to-r, blue.400, green.400)"
+                bgGradient="linear(to-r, brand.500, secondary.500)"
                 bgClip="text"
+                fontWeight="bold"
               >
                 Power Bank Admin
               </Heading>
-              <Text color="gray.500" textAlign="center" fontSize="md">
+              <Text
+                color={useColorModeValue('gray.600', 'dark.50')}
+                textAlign="center"
+                fontSize="md"
+              >
                 Inicia sesión para gestionar tu red de power banks
               </Text>
             </VStack>
@@ -188,7 +187,7 @@ export default function Login() {
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={isLoading}
                       size="lg"
-                      focusBorderColor="blue.400"
+                      focusBorderColor="brand.500"
                     />
                   </InputGroup>
                   <FormErrorMessage>{errors.email}</FormErrorMessage>
@@ -207,7 +206,7 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isLoading}
                       size="lg"
-                      focusBorderColor="blue.400"
+                      focusBorderColor="brand.500"
                       pl={10}
                     />
                     <InputRightElement>
@@ -226,17 +225,22 @@ export default function Login() {
 
                 <Button
                   type="submit"
-                  colorScheme="blue"
+                  colorScheme="brand"
                   width="full"
                   size="lg"
                   isLoading={isLoading}
                   loadingText="Iniciando sesión..."
                   mt={4}
-                  bgGradient="linear(to-r, blue.400, blue.600)"
+                  bg="brand.500"
+                  color="black"
                   _hover={{
-                    bgGradient: 'linear(to-r, blue.500, blue.700)',
+                    bg: 'brand.300',
+                  }}
+                  _active={{
+                    bg: 'brand.600',
                   }}
                   leftIcon={<Icon as={MdElectricBolt} />}
+                  fontWeight="bold"
                 >
                   Iniciar Sesión
                 </Button>
@@ -246,12 +250,16 @@ export default function Login() {
             {/* Footer */}
             <VStack spacing={2} pt={4}>
               <Flex align="center" gap={2}>
-                <Icon as={MdBatteryChargingFull} color={iconColor} />
-                <Text fontSize="sm" color="gray.500" fontWeight="medium">
+                <Icon as={MdBatteryChargingFull} color="brand.500" />
+                <Text
+                  fontSize="sm"
+                  color={useColorModeValue('gray.600', 'dark.50')}
+                  fontWeight="medium"
+                >
                   Sistema de Gestión de Power Banks
                 </Text>
               </Flex>
-              <Text fontSize="xs" color="gray.400">
+              <Text fontSize="xs" color={useColorModeValue('gray.500', 'dark.100')}>
                 Acceso seguro a tu red de carga
               </Text>
             </VStack>
