@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/ecaceres/proyectos/personal/power-bank-app/backend/**)",
+      "Bash(npm run prisma:studio)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
