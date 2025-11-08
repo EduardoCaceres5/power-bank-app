@@ -5,8 +5,8 @@ import {
   Icon,
   Flex,
   useColorModeValue,
-  Heading,
   Divider,
+  Image,
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
 import {
@@ -56,9 +56,12 @@ export default function Sidebar() {
     >
       {/* Logo/Title */}
       <Flex h="70px" align="center" justify="center" borderBottom="1px" borderColor={borderColor}>
-        <Heading size="md" color="brand.600">
-          Admin Power Bank
-        </Heading>
+        <Image
+          src="/logo.png"
+          alt="Recargá"
+          h="40px"
+          objectFit="contain"
+        />
       </Flex>
 
       {/* Navigation */}
