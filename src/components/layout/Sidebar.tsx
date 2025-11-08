@@ -55,11 +55,13 @@ export default function Sidebar() {
       overflow="auto"
     >
       {/* Logo/Title */}
-      <Flex h="70px" align="center" justify="center" borderBottom="1px" borderColor={borderColor}>
+      <Flex h="70px" align="center" justify="center" borderBottom="1px" borderColor={borderColor} px={4}>
         <Image
           src="/logo.png"
           alt="Recargá"
-          h="40px"
+          w="100%"
+          h="auto"
+          maxH="60px"
           objectFit="contain"
         />
       </Flex>
