@@ -136,37 +136,28 @@ export default function Dashboard() {
   if (loading) {
     return (
       <Box>
+        {/* System Health Skeleton */}
+        <Card p={6} mb={6}>
+          <Skeleton height="24px" width="200px" mb={4} />
+          <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Box key={i} p={4} borderWidth={1} borderRadius="md">
+                <HStack>
+                  <Skeleton height="24px" width="24px" borderRadius="full" />
+                  <VStack align="start" spacing={1} flex={1}>
+                    <Skeleton height="16px" width="60%" />
+                    <Skeleton height="14px" width="80%" />
+                  </VStack>
+                </HStack>
+              </Box>
+            ))}
+          </SimpleGrid>
+        </Card>
+
         {/* Stats Cards Skeleton */}
-        <Grid templateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={6} mb={8}>
+        <Grid templateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={6} mb={6}>
           <DashboardStatsSkeleton />
         </Grid>
-
-        {/* Revenue Chart Skeleton */}
-        <Box mb={6}>
-          <Card p={6}>
-            <RevenueChartSkeleton />
-          </Card>
-        </Box>
-
-        {/* Map Skeleton */}
-        <Box mb={6}>
-          <Card p={6}>
-            <MapSkeleton />
-          </Card>
-        </Box>
-
-        {/* Charts Section Skeleton */}
-        <SimpleGrid columns={{ base: 1, lg: 2, xl: 3 }} gap={6} mb={6}>
-          <Card p={6}>
-            <ChartSkeleton />
-          </Card>
-          <Card p={6}>
-            <ChartSkeleton />
-          </Card>
-          <Card p={6}>
-            <ChartSkeleton />
-          </Card>
-        </SimpleGrid>
 
         {/* Monitoring Sections Skeleton */}
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} mb={6}>
@@ -194,23 +185,32 @@ export default function Dashboard() {
           </Card>
         </SimpleGrid>
 
-        {/* System Health Skeleton */}
-        <Card p={6}>
-          <Skeleton height="24px" width="200px" mb={4} />
-          <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Box key={i} p={4} borderWidth={1} borderRadius="md">
-                <HStack>
-                  <Skeleton height="24px" width="24px" borderRadius="full" />
-                  <VStack align="start" spacing={1} flex={1}>
-                    <Skeleton height="16px" width="60%" />
-                    <Skeleton height="14px" width="80%" />
-                  </VStack>
-                </HStack>
-              </Box>
-            ))}
-          </SimpleGrid>
-        </Card>
+        {/* Charts Section Skeleton */}
+        <SimpleGrid columns={{ base: 1, lg: 2, xl: 3 }} gap={6} mb={6}>
+          <Card p={6}>
+            <ChartSkeleton />
+          </Card>
+          <Card p={6}>
+            <ChartSkeleton />
+          </Card>
+          <Card p={6}>
+            <ChartSkeleton />
+          </Card>
+        </SimpleGrid>
+
+        {/* Map Skeleton */}
+        <Box mb={6}>
+          <Card p={6}>
+            <MapSkeleton />
+          </Card>
+        </Box>
+
+        {/* Revenue Chart Skeleton */}
+        <Box mb={6}>
+          <Card p={6}>
+            <RevenueChartSkeleton />
+          </Card>
+        </Box>
       </Box>
     );
   }
@@ -307,7 +307,80 @@ export default function Dashboard() {
 
   return (
     <Box>
-      <Grid templateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={6} mb={8}>
+      {/* System health */}
+      <Card p={6} mb={6}>
+        <Heading size="md" mb={4} color={textColor}>
+          Estado del Sistema
+        </Heading>
+          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+            <Box
+              p={4}
+              borderWidth={1}
+              borderRadius="md"
+              bg={systemHealthBg}
+              borderColor={systemHealthBorder}
+              transition="all 0.2s"
+              _hover={{ shadow: 'sm' }}
+            >
+              <HStack>
+                <Icon as={MdCheckCircle} color="green.500" boxSize={6} />
+                <VStack align="start" spacing={0}>
+                  <Text fontWeight="bold" color={systemHealthText}>
+                    API
+                  </Text>
+                  <Text fontSize="sm" color={systemHealthSubtext}>
+                    Operacional
+                  </Text>
+                </VStack>
+              </HStack>
+            </Box>
+            <Box
+              p={4}
+              borderWidth={1}
+              borderRadius="md"
+              bg={systemHealthBg}
+              borderColor={systemHealthBorder}
+              transition="all 0.2s"
+              _hover={{ shadow: 'sm' }}
+            >
+              <HStack>
+                <Icon as={MdDevices} color="green.500" boxSize={6} />
+                <VStack align="start" spacing={0}>
+                  <Text fontWeight="bold" color={systemHealthText}>
+                    Gabinetes
+                  </Text>
+                  <Text fontSize="sm" color={systemHealthSubtext}>
+                    {stats?.onlineCabinets}/{stats?.totalCabinets} en línea
+                  </Text>
+                </VStack>
+              </HStack>
+            </Box>
+            <Box
+              p={4}
+              borderWidth={1}
+              borderRadius="md"
+              bg={batteryBg}
+              borderColor={batteryBorder}
+              transition="all 0.2s"
+              _hover={{ shadow: 'sm' }}
+            >
+              <HStack>
+                <Icon as={MdBattery80} color="blue.500" boxSize={6} />
+                <VStack align="start" spacing={0}>
+                  <Text fontWeight="bold" color={batteryText}>
+                    Baterías
+                  </Text>
+                  <Text fontSize="sm" color={batterySubtext}>
+                    {stats?.availableBatteries} disponibles
+                  </Text>
+                </VStack>
+              </HStack>
+            </Box>
+          </SimpleGrid>
+      </Card>
+
+      {/* Stats Cards */}
+      <Grid templateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={6} mb={6}>
         {statCards.map((card, index) => (
           <GridItem key={index}>
             <Box
@@ -345,43 +418,6 @@ export default function Dashboard() {
           </GridItem>
         ))}
       </Grid>
-
-      {/* Revenue Chart - Full Width */}
-      <Box mb={6}>
-        <RevenueChart />
-      </Box>
-
-      {/* Cabinet Map - Full Width */}
-      <Box mb={6}>
-        <CabinetMap />
-      </Box>
-
-      {/* Charts Section */}
-      <SimpleGrid columns={{ base: 1, lg: 2, xl: 3 }} gap={6} mb={6}>
-        {/* Cabinet Status Trend */}
-        <Card p={6}>
-          <VStack align="stretch" spacing={4}>
-            <Heading size="md" color={textColor}>Tendencia de Gabinetes (7 días)</Heading>
-            <CabinetStatusChart data={getCabinetStatusData()} />
-          </VStack>
-        </Card>
-
-        {/* Battery Levels */}
-        <Card p={6}>
-          <VStack align="stretch" spacing={4}>
-            <Heading size="md" color={textColor}>Distribución de Niveles de Batería</Heading>
-            <BatteryLevelChart data={getBatteryLevelData()} />
-          </VStack>
-        </Card>
-
-        {/* Cabinet Models */}
-        <Card p={6}>
-          <VStack align="stretch" spacing={4}>
-            <Heading size="md" color={textColor}>Modelos de Gabinetes</Heading>
-            <CabinetModelChart data={getCabinetModelData()} />
-          </VStack>
-        </Card>
-      </SimpleGrid>
 
       {/* Monitoring sections */}
       <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} mb={6}>
@@ -507,77 +543,42 @@ export default function Dashboard() {
         </Card>
       </SimpleGrid>
 
-      {/* System health */}
-      <Card p={6}>
-        <Heading size="md" mb={4} color={textColor}>
-          Estado del Sistema
-        </Heading>
-          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-            <Box
-              p={4}
-              borderWidth={1}
-              borderRadius="md"
-              bg={systemHealthBg}
-              borderColor={systemHealthBorder}
-              transition="all 0.2s"
-              _hover={{ shadow: 'sm' }}
-            >
-              <HStack>
-                <Icon as={MdCheckCircle} color="green.500" boxSize={6} />
-                <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color={systemHealthText}>
-                    API
-                  </Text>
-                  <Text fontSize="sm" color={systemHealthSubtext}>
-                    Operacional
-                  </Text>
-                </VStack>
-              </HStack>
-            </Box>
-            <Box
-              p={4}
-              borderWidth={1}
-              borderRadius="md"
-              bg={systemHealthBg}
-              borderColor={systemHealthBorder}
-              transition="all 0.2s"
-              _hover={{ shadow: 'sm' }}
-            >
-              <HStack>
-                <Icon as={MdDevices} color="green.500" boxSize={6} />
-                <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color={systemHealthText}>
-                    Gabinetes
-                  </Text>
-                  <Text fontSize="sm" color={systemHealthSubtext}>
-                    {stats?.onlineCabinets}/{stats?.totalCabinets} en línea
-                  </Text>
-                </VStack>
-              </HStack>
-            </Box>
-            <Box
-              p={4}
-              borderWidth={1}
-              borderRadius="md"
-              bg={batteryBg}
-              borderColor={batteryBorder}
-              transition="all 0.2s"
-              _hover={{ shadow: 'sm' }}
-            >
-              <HStack>
-                <Icon as={MdBattery80} color="blue.500" boxSize={6} />
-                <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color={batteryText}>
-                    Baterías
-                  </Text>
-                  <Text fontSize="sm" color={batterySubtext}>
-                    {stats?.availableBatteries} disponibles
-                  </Text>
-                </VStack>
-              </HStack>
-            </Box>
-          </SimpleGrid>
-      </Card>
+      {/* Charts Section */}
+      <SimpleGrid columns={{ base: 1, lg: 2, xl: 3 }} gap={6} mb={6}>
+        {/* Cabinet Status Trend */}
+        <Card p={6}>
+          <VStack align="stretch" spacing={4}>
+            <Heading size="md" color={textColor}>Tendencia de Gabinetes (7 días)</Heading>
+            <CabinetStatusChart data={getCabinetStatusData()} />
+          </VStack>
+        </Card>
+
+        {/* Battery Levels */}
+        <Card p={6}>
+          <VStack align="stretch" spacing={4}>
+            <Heading size="md" color={textColor}>Distribución de Niveles de Batería</Heading>
+            <BatteryLevelChart data={getBatteryLevelData()} />
+          </VStack>
+        </Card>
+
+        {/* Cabinet Models */}
+        <Card p={6}>
+          <VStack align="stretch" spacing={4}>
+            <Heading size="md" color={textColor}>Modelos de Gabinetes</Heading>
+            <CabinetModelChart data={getCabinetModelData()} />
+          </VStack>
+        </Card>
+      </SimpleGrid>
+
+      {/* Cabinet Map - Full Width */}
+      <Box mb={6}>
+        <CabinetMap />
+      </Box>
+
+      {/* Revenue Chart - Full Width */}
+      <Box mb={6}>
+        <RevenueChart />
+      </Box>
     </Box>
   );
 }
