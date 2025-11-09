@@ -277,3 +277,123 @@ export interface DeviceHeartbeatResponse {
   };
   error?: string;
 }
+
+// Revenue Statistics Types
+export interface RevenueByDay {
+  date: string;
+  revenue: number;
+  count: number;
+}
+
+export interface RevenueByType {
+  type: 'RENTAL' | 'DEPOSIT' | 'REFUND' | 'LATE_FEE' | 'LOST_FEE';
+  total: number;
+  count: number;
+}
+
+export interface RevenueStats {
+  totalRevenue: number;
+  todayRevenue: number;
+  weekRevenue: number;
+  monthRevenue: number;
+  byDay: RevenueByDay[];
+  byType: RevenueByType[];
+  averageTransaction: number;
+}
+
+// Rental Statistics Types
+export interface RentalByDay {
+  date: string;
+  count: number;
+  active: number;
+  completed: number;
+  overdue: number;
+  cancelled: number;
+}
+
+export interface RentalStats {
+  totalRentals: number;
+  activeRentals: number;
+  completedRentals: number;
+  overdueRentals: number;
+  todayRentals: number;
+  byDay: RentalByDay[];
+  averageDuration: number;
+}
+
+// Cabinet Statistics Types
+export interface CabinetStats {
+  cabinetId: string;
+  cabinetName: string;
+  totalSlots: number;
+  availableSlots: number;
+  occupiedSlots: number;
+  totalPowerBanks: number;
+  availablePowerBanks: number;
+  rentedPowerBanks: number;
+  chargingPowerBanks: number;
+  maintenancePowerBanks: number;
+  totalRentals: number;
+  activeRentals: number;
+  completedRentals: number;
+  overdueRentals: number;
+  totalRevenue: number;
+  todayRevenue: number;
+  weekRevenue: number;
+  monthRevenue: number;
+}
+
+// Dashboard Overview Types
+export interface DashboardOverview {
+  cabinets: {
+    total: number;
+    byStatus: {
+      online: number;
+      offline: number;
+      maintenance: number;
+      outOfService: number;
+    };
+    totalSlots: number;
+    availableSlots: number;
+    totalPowerBanks: number;
+    availablePowerBanks: number;
+  };
+  rentals: {
+    total: number;
+    active: number;
+    completed: number;
+    overdue: number;
+    today: number;
+  };
+  revenue: {
+    total: number;
+    today: number;
+    week: number;
+    month: number;
+  };
+  users: {
+    total: number;
+    active: number;
+    newToday: number;
+  };
+}
+
+// Alert Types
+export interface Alert {
+  id: string;
+  type: 'offline_cabinet' | 'overdue_rental' | 'low_battery' | 'damaged_powerbank' | 'maintenance_cabinet';
+  severity: 'critical' | 'warning' | 'info';
+  message: string;
+  cabinetId?: string;
+  cabinetName?: string;
+  rentalId?: string;
+  powerBankId?: string;
+  createdAt: string;
+}
+
+// Extended Cabinet type for map display
+export interface CabinetWithStats extends Cabinet {
+  availablePowerBanks?: number;
+  totalSlots?: number;
+  status?: 'ONLINE' | 'OFFLINE' | 'MAINTENANCE' | 'OUT_OF_SERVICE';
+}

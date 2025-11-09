@@ -112,3 +112,58 @@ export function DetailsSkeleton() {
     </VStack>
   );
 }
+
+export function ChartSkeleton({ height = '300px' }: { height?: string }) {
+  return (
+    <VStack spacing={4} align="stretch">
+      <Skeleton height="24px" width="40%" />
+      <Skeleton height={height} width="100%" borderRadius="lg" />
+    </VStack>
+  );
+}
+
+export function MapSkeleton() {
+  return (
+    <VStack spacing={4} align="stretch">
+      <HStack justify="space-between">
+        <Skeleton height="24px" width="30%" />
+        <HStack spacing={4}>
+          <Skeleton height="16px" width="80px" />
+          <Skeleton height="16px" width="80px" />
+          <Skeleton height="16px" width="80px" />
+        </HStack>
+      </HStack>
+      <Skeleton height="384px" width="100%" borderRadius="lg" />
+      <Skeleton height="16px" width="150px" />
+    </VStack>
+  );
+}
+
+export function RevenueChartSkeleton() {
+  return (
+    <VStack spacing={4} align="stretch">
+      <HStack justify="space-between">
+        <HStack spacing={3}>
+          <Skeleton height="28px" width="180px" />
+          <Skeleton height="20px" width="100px" />
+        </HStack>
+        <HStack spacing={2}>
+          <Skeleton height="32px" width="70px" />
+          <Skeleton height="32px" width="70px" />
+          <Skeleton height="32px" width="70px" />
+          <Skeleton height="32px" width="70px" />
+        </HStack>
+      </HStack>
+      {/* Summary Stats */}
+      <HStack spacing={4}>
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Box key={index} flex={1} borderRadius="lg" p={4}>
+            <SkeletonText noOfLines={2} spacing={3} />
+          </Box>
+        ))}
+      </HStack>
+      {/* Chart */}
+      <Skeleton height="320px" width="100%" borderRadius="lg" />
+    </VStack>
+  );
+}

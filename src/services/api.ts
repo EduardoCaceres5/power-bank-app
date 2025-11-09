@@ -25,6 +25,11 @@ import type {
   DeviceAuthResponse,
   DeviceHeartbeatRequest,
   DeviceHeartbeatResponse,
+  RevenueStats,
+  RentalStats,
+  CabinetStats,
+  DashboardOverview,
+  Alert,
 } from '@/types/api.types';
 
 class ApiService {
@@ -291,6 +296,49 @@ class ApiService {
 
   async getDeviceStatus(cabinetId: string): Promise<ApiResponse> {
     const response = await this.client.get(`/device/status/${cabinetId}`);
+    return response.data;
+  }
+
+  // ==================== ANALYTICS & STATISTICS ====================
+
+  async getDashboardOverview(): Promise<ApiResponse<DashboardOverview>> {
+    const response = await this.client.get('/admin/dashboard');
+    return response.data;
+  }
+
+  async getRevenueStats(period: '7d' | '30d' | '90d' | '1y' = '30d'): Promise<ApiResponse<RevenueStats>> {
+    const response = await this.client.get('/admin/revenue/stats', {
+      params: { period },
+    });
+    return response.data;
+  }
+
+  async getRentalStats(period: '7d' | '30d' | '90d' | '1y' = '30d'): Promise<ApiResponse<RentalStats>> {
+    const response = await this.client.get('/admin/rentals/stats', {
+      params: { period },
+    });
+    return response.data;
+  }
+
+  async getCabinetStats(cabinetId: string): Promise<ApiResponse<CabinetStats>> {
+    const response = await this.client.get(`/cabinets/${cabinetId}/stats`);
+    return response.data;
+  }
+
+  async getAllCabinetStats(): Promise<ApiResponse<CabinetStats[]>> {
+    const response = await this.client.get('/admin/cabinets/stats');
+    return response.data;
+  }
+
+  async getSystemAlerts(): Promise<ApiResponse<Alert[]>> {
+    const response = await this.client.get('/admin/alerts');
+    return response.data;
+  }
+
+  async getNearbyCabinets(latitude: number, longitude: number, radius?: number): Promise<ApiResponse<Cabinet[]>> {
+    const response = await this.client.get('/cabinets/nearby', {
+      params: { latitude, longitude, radius },
+    });
     return response.data;
   }
 }

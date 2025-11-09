@@ -1,0 +1,267 @@
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { Card } from '../common/Card';
+import { Cabinet } from '@/types/api.types';
+import apiService from '@/services/api';
+
+// Fix for default marker icons in React-Leaflet
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
+
+// Custom marker icons based on cabinet status
+const createCustomIcon = (status: number, availableBatteries?: number) => {
+  const isOnline = status === 1;
+  const hasAvailableBatteries = (availableBatteries ?? 0) > 0;
+
+  let color = '#9CA3AF'; // gray for offline
+  if (isOnline && hasAvailableBatteries) {
+    color = '#10B981'; // green for online with batteries
+  } else if (isOnline && !hasAvailableBatteries) {
+    color = '#F59E0B'; // amber for online but no batteries
+  }
+
+  const svgIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+      <path fill="${color}" stroke="#fff" stroke-width="1.5" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+  `;
+
+  return L.divIcon({
+    html: svgIcon,
+    className: 'custom-marker',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  });
+};
+
+// Component to handle map centering and bounds
+function MapController({ cabinets }: { cabinets: Cabinet[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (cabinets.length > 0) {
+      const bounds = L.latLngBounds(
+        cabinets
+          .filter(c => c.latitude && c.longitude)
+          .map(c => [c.latitude!, c.longitude!])
+      );
+
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    }
+  }, [cabinets, map]);
+
+  return null;
+}
+
+interface CabinetMapProps {
+  className?: string;
+}
+
+export function CabinetMap({ className = '' }: CabinetMapProps) {
+  const [cabinets, setCabinets] = useState<Cabinet[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadCabinets();
+  }, []);
+
+  const loadCabinets = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiService.getCabinets();
+
+      if (response.success && response.data) {
+        // Filter cabinets that have valid coordinates
+        const validCabinets = response.data.list.filter(
+          c => c.latitude !== null && c.longitude !== null &&
+               c.latitude !== undefined && c.longitude !== undefined
+        );
+        setCabinets(validCabinets);
+      }
+    } catch (err) {
+      console.error('Error loading cabinets:', err);
+      setError('Error al cargar los gabinetes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get available batteries count from cabinet details
+  const getAvailableBatteries = (cabinet: Cabinet): number => {
+    // This would need to be enhanced based on your actual data structure
+    // For now, we'll use a placeholder
+    return 0;
+  };
+
+  if (loading) {
+    return (
+      <Card className={className}>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Mapa de Gabinetes
+          </h3>
+          <div className="flex items-center justify-center h-96">
+            <div className="text-gray-500">Cargando mapa...</div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className={className}>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Mapa de Gabinetes
+          </h3>
+          <div className="flex items-center justify-center h-96">
+            <div className="text-red-500">{error}</div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (cabinets.length === 0) {
+    return (
+      <Card className={className}>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Mapa de Gabinetes
+          </h3>
+          <div className="flex items-center justify-center h-96">
+            <div className="text-gray-500">
+              No hay gabinetes con ubicación disponible
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Default center (will be overridden by MapController)
+  const defaultCenter: [number, number] = [
+    cabinets[0].latitude!,
+    cabinets[0].longitude!
+  ];
+
+  return (
+    <Card className={className}>
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Mapa de Gabinetes
+          </h3>
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <span className="text-gray-600">Disponible</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+              <span className="text-gray-600">Sin baterías</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+              <span className="text-gray-600">Fuera de línea</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-96 rounded-lg overflow-hidden border border-gray-200">
+          <MapContainer
+            center={defaultCenter}
+            zoom={13}
+            style={{ height: '100%', width: '100%' }}
+            scrollWheelZoom={true}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <MapController cabinets={cabinets} />
+
+            {cabinets.map((cabinet) => (
+              <Marker
+                key={cabinet.id}
+                position={[cabinet.latitude!, cabinet.longitude!]}
+                icon={createCustomIcon(cabinet.is_online, getAvailableBatteries(cabinet))}
+              >
+                <Popup>
+                  <div className="p-2 min-w-[200px]">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      {cabinet.cabinet_id}
+                    </h4>
+
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Estado:</span>
+                        <span className={`font-medium ${
+                          cabinet.is_online === 1
+                            ? 'text-green-600'
+                            : 'text-gray-600'
+                        }`}>
+                          {cabinet.is_online === 1 ? 'En línea' : 'Fuera de línea'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Modelo:</span>
+                        <span className="font-medium text-gray-900">
+                          {cabinet.model.toUpperCase()}
+                        </span>
+                      </div>
+
+                      {cabinet.address && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-gray-600 text-xs">
+                            {cabinet.address}
+                          </span>
+                        </div>
+                      )}
+
+                      {cabinet.lastPingAt && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-gray-600 text-xs">
+                            Última conexión: {new Date(cabinet.lastPingAt).toLocaleString('es-ES')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => window.location.href = `/cabinets/${cabinet.cabinet_id}`}
+                      className="mt-3 w-full px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                    >
+                      Ver detalles
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+        </div>
+
+        <div className="mt-4 text-sm text-gray-600">
+          Mostrando {cabinets.length} gabinete{cabinets.length !== 1 ? 's' : ''}
+        </div>
+      </div>
+    </Card>
+  );
+}
