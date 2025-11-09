@@ -75,11 +75,16 @@ export default function Header() {
       <HStack spacing={3}>
         {/* Color Mode Toggle */}
         <IconButton
-          aria-label="Toggle color mode"
+          aria-label={colorMode === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
           icon={colorMode === 'light' ? <MdBrightness4 /> : <MdBrightness7 />}
           onClick={toggleColorMode}
           variant="ghost"
           size="md"
+          _focusVisible={{
+            outline: '2px solid',
+            outlineColor: 'brand.500',
+            outlineOffset: '2px',
+          }}
         />
 
         {/* Notifications */}

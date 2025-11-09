@@ -9,7 +9,8 @@
       "Bash(dir /s /b \"C:\\Users\\ecaceres\\proyectos\\personal\\power-bank-app\\mobile\\constants\" 2)",
       "Bash(dir /s /b \"C:\\Users\\ecaceres\\proyectos\\personal\\power-bank-app\\mobile\\config\" 2)",
       "Bash(dir /s /b \"C:\\Users\\ecaceres\\proyectos\\personal\\power-bank-app\\mobile\\styles\" 2)",
-      "Bash(pnpm run build:*)"
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []

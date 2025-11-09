@@ -19,6 +19,7 @@ import {
 import { MdAdd, MdEdit, MdDelete, MdRefresh } from 'react-icons/md';
 import { apiService } from '@/services/api';
 import type { Plan } from '@/types/api.types';
+import { TableSkeleton } from '@/components/common/SkeletonLoader';
 
 export default function ScreenPlans() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -63,9 +64,9 @@ export default function ScreenPlans() {
 
       <Box bg={bgColor} borderRadius="lg" shadow="sm" borderWidth="1px" overflow="hidden">
         {loading ? (
-          <Flex justify="center" align="center" h="400px">
-            <Spinner size="xl" />
-          </Flex>
+          <Box p={6}>
+            <TableSkeleton rows={6} />
+          </Box>
         ) : (
           <Table>
             <Thead>

@@ -34,16 +34,38 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '@/services/api';
 import type { DashboardStats, Cabinet } from '@/types/api.types';
+import { DashboardStatsSkeleton, CabinetCardSkeleton } from '@/components/common/SkeletonLoader';
+import { CabinetStatusChart } from '@/components/charts/CabinetStatusChart';
+import { BatteryLevelChart } from '@/components/charts/BatteryLevelChart';
+import { CabinetModelChart } from '@/components/charts/CabinetModelChart';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentCabinets, setRecentCabinets] = useState<Cabinet[]>([]);
   const [offlineCabinets, setOfflineCabinets] = useState<Cabinet[]>([]);
+  const [allCabinets, setAllCabinets] = useState<Cabinet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Theme colors
   const bgColor = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const labelColor = useColorModeValue('gray.500', 'gray.400');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const hoverBg = useColorModeValue('gray.50', 'gray.700');
+  const emptyTextColor = useColorModeValue('gray.500', 'gray.400');
+  const offlineBg = useColorModeValue('red.50', 'red.900');
+  const offlineBorderColor = useColorModeValue('red.200', 'red.700');
+  const offlineHoverBg = useColorModeValue('red.100', 'red.800');
+  const systemHealthBg = useColorModeValue('green.50', 'green.900');
+  const systemHealthBorder = useColorModeValue('green.200', 'green.700');
+  const systemHealthText = useColorModeValue('green.700', 'green.300');
+  const systemHealthSubtext = useColorModeValue('green.600', 'green.400');
+  const batteryBg = useColorModeValue('blue.50', 'blue.900');
+  const batteryBorder = useColorModeValue('blue.200', 'blue.700');
+  const batteryText = useColorModeValue('blue.700', 'blue.300');
+  const batterySubtext = useColorModeValue('blue.600', 'blue.400');
 
   useEffect(() => {
     loadDashboardData();
@@ -63,8 +85,11 @@ export default function Dashboard() {
       ]);
 
       if (cabinetsRes.success && batteriesRes.success && plansRes.success) {
-        const onlineCabs = allCabinetsRes.data?.list.filter((c) => c.is_online === 1) || [];
-        const offlineCabs = allCabinetsRes.data?.list.filter((c) => c.is_online === 0) || [];
+        const allCabs = allCabinetsRes.data?.list || [];
+        const onlineCabs = allCabs.filter((c) => c.is_online === 1);
+        const offlineCabs = allCabs.filter((c) => c.is_online === 0);
+
+        setAllCabinets(allCabs);
 
         setStats({
           totalCabinets: cabinetsRes.data?.total || 0,
@@ -99,9 +124,31 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <Flex justify="center" align="center" h="400px">
-        <Spinner size="xl" color="brand.500" />
-      </Flex>
+      <Box>
+        <Grid templateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={6} mb={8}>
+          <DashboardStatsSkeleton />
+        </Grid>
+        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
+          <Card>
+            <CardBody>
+              <VStack align="stretch" spacing={4}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <CabinetCardSkeleton key={i} />
+                ))}
+              </VStack>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <VStack align="stretch" spacing={4}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <CabinetCardSkeleton key={i} />
+                ))}
+              </VStack>
+            </CardBody>
+          </Card>
+        </SimpleGrid>
+      </Box>
     );
   }
 
@@ -113,6 +160,56 @@ export default function Dashboard() {
       </Alert>
     );
   }
+
+  // Prepare chart data
+  const getCabinetStatusData = () => {
+    // Generate last 7 days data
+    const days = 7;
+    const data = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+
+      // Simulate historical data (in real app, fetch from API)
+      const totalOnline = stats?.onlineCabinets || 0;
+      const totalOffline = (stats?.totalCabinets || 0) - totalOnline;
+      const variance = Math.floor(Math.random() * 3) - 1;
+
+      data.push({
+        date: dateStr,
+        online: Math.max(0, totalOnline + variance),
+        offline: Math.max(0, totalOffline - variance),
+      });
+    }
+    return data;
+  };
+
+  const getBatteryLevelData = () => {
+    // In real app, fetch from API with actual battery levels
+    // For now, simulate data based on stats
+    return [
+      { range: '0-20%', count: Math.floor((stats?.totalBatteries || 0) * 0.1) },
+      { range: '21-40%', count: Math.floor((stats?.totalBatteries || 0) * 0.15) },
+      { range: '41-60%', count: Math.floor((stats?.totalBatteries || 0) * 0.2) },
+      { range: '61-80%', count: Math.floor((stats?.totalBatteries || 0) * 0.25) },
+      { range: '81-100%', count: Math.floor((stats?.totalBatteries || 0) * 0.3) },
+    ];
+  };
+
+  const getCabinetModelData = () => {
+    // Count cabinets by model
+    const modelCounts: Record<string, number> = {};
+    allCabinets.forEach((cabinet) => {
+      const model = cabinet.model.toUpperCase();
+      modelCounts[model] = (modelCounts[model] || 0) + 1;
+    });
+
+    return Object.entries(modelCounts).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  };
 
   const statCards = [
     {
@@ -150,12 +247,21 @@ export default function Dashboard() {
       <Grid templateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={6} mb={8}>
         {statCards.map((card, index) => (
           <GridItem key={index}>
-            <Box bg={bgColor} p={6} borderRadius="lg" shadow="sm" borderWidth="1px">
+            <Box
+              bg={bgColor}
+              p={6}
+              borderRadius="lg"
+              shadow="sm"
+              borderWidth="1px"
+              borderColor={borderColor}
+              transition="all 0.2s"
+              _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
+            >
               <Flex align="center" mb={4}>
                 <Icon as={card.icon} boxSize={8} color={`${card.color}.500`} mr={3} />
                 <Box>
                   <Stat>
-                    <StatLabel fontSize="sm" color="gray.500">
+                    <StatLabel fontSize="sm" color={labelColor}>
                       {card.label}
                     </StatLabel>
                     <StatNumber fontSize="2xl">{card.value}</StatNumber>
@@ -177,6 +283,39 @@ export default function Dashboard() {
         ))}
       </Grid>
 
+      {/* Charts Section */}
+      <SimpleGrid columns={{ base: 1, lg: 2, xl: 3 }} gap={6} mb={6}>
+        {/* Cabinet Status Trend */}
+        <Card>
+          <CardBody>
+            <VStack align="stretch" spacing={4}>
+              <Heading size="md">Tendencia de Gabinetes (7 días)</Heading>
+              <CabinetStatusChart data={getCabinetStatusData()} />
+            </VStack>
+          </CardBody>
+        </Card>
+
+        {/* Battery Levels */}
+        <Card>
+          <CardBody>
+            <VStack align="stretch" spacing={4}>
+              <Heading size="md">Distribución de Niveles de Batería</Heading>
+              <BatteryLevelChart data={getBatteryLevelData()} />
+            </VStack>
+          </CardBody>
+        </Card>
+
+        {/* Cabinet Models */}
+        <Card>
+          <CardBody>
+            <VStack align="stretch" spacing={4}>
+              <Heading size="md">Modelos de Gabinetes</Heading>
+              <CabinetModelChart data={getCabinetModelData()} />
+            </VStack>
+          </CardBody>
+        </Card>
+      </SimpleGrid>
+
       {/* Monitoring sections */}
       <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} mb={6}>
         {/* Recent Heartbeats */}
@@ -188,7 +327,7 @@ export default function Dashboard() {
                 <Icon as={MdCheckCircle} boxSize={6} color="green.500" />
               </HStack>
               {recentCabinets.length === 0 ? (
-                <Text color="gray.500" textAlign="center" py={4}>
+                <Text color={emptyTextColor} textAlign="center" py={4}>
                   No hay gabinetes con heartbeat reciente
                 </Text>
               ) : (
@@ -198,9 +337,11 @@ export default function Dashboard() {
                       key={cabinet.id}
                       p={3}
                       borderWidth={1}
+                      borderColor={borderColor}
                       borderRadius="md"
-                      _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                      _hover={{ bg: hoverBg, cursor: 'pointer' }}
                       onClick={() => navigate(`/cabinets/${cabinet.cabinet_id}`)}
+                      transition="all 0.2s"
                     >
                       <HStack justify="space-between">
                         <VStack align="start" spacing={1}>
@@ -222,7 +363,7 @@ export default function Dashboard() {
                                         : 'red.500'
                                   }
                                 />
-                                <Text fontSize="xs" color="gray.600">
+                                <Text fontSize="xs" color={textSecondary}>
                                   {cabinet.signalStrength}/31
                                 </Text>
                               </HStack>
@@ -230,11 +371,11 @@ export default function Dashboard() {
                           </HStack>
                         </VStack>
                         <VStack align="end" spacing={0}>
-                          <Text fontSize="xs" color="gray.500">
+                          <Text fontSize="xs" color={labelColor}>
                             {cabinet.lastPingAt &&
                               new Date(cabinet.lastPingAt).toLocaleTimeString()}
                           </Text>
-                          <Text fontSize="xs" color="gray.400">
+                          <Text fontSize="xs" color={textSecondary}>
                             {cabinet.connectionType?.toUpperCase() || 'N/A'}
                           </Text>
                         </VStack>
@@ -268,10 +409,11 @@ export default function Dashboard() {
                       p={3}
                       borderWidth={1}
                       borderRadius="md"
-                      borderColor="red.200"
-                      bg="red.50"
-                      _hover={{ bg: 'red.100', cursor: 'pointer' }}
+                      borderColor={offlineBorderColor}
+                      bg={offlineBg}
+                      _hover={{ bg: offlineHoverBg, cursor: 'pointer' }}
                       onClick={() => navigate(`/cabinets/${cabinet.cabinet_id}`)}
+                      transition="all 0.2s"
                     >
                       <HStack justify="space-between">
                         <VStack align="start" spacing={1}>
@@ -281,13 +423,13 @@ export default function Dashboard() {
                           </Badge>
                         </VStack>
                         <VStack align="end" spacing={0}>
-                          <Text fontSize="xs" color="gray.600">
+                          <Text fontSize="xs" color={textSecondary}>
                             {cabinet.lastPingAt
                               ? `Último: ${new Date(cabinet.lastPingAt).toLocaleString()}`
                               : 'Sin heartbeat'}
                           </Text>
                           {cabinet.address && (
-                            <Text fontSize="xs" color="gray.500">
+                            <Text fontSize="xs" color={labelColor}>
                               {cabinet.address}
                             </Text>
                           )}
@@ -309,40 +451,64 @@ export default function Dashboard() {
             Estado del Sistema
           </Heading>
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-            <Box p={4} borderWidth={1} borderRadius="md" bg="green.50" borderColor="green.200">
+            <Box
+              p={4}
+              borderWidth={1}
+              borderRadius="md"
+              bg={systemHealthBg}
+              borderColor={systemHealthBorder}
+              transition="all 0.2s"
+              _hover={{ shadow: 'sm' }}
+            >
               <HStack>
                 <Icon as={MdCheckCircle} color="green.500" boxSize={6} />
                 <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color="green.700">
+                  <Text fontWeight="bold" color={systemHealthText}>
                     API
                   </Text>
-                  <Text fontSize="sm" color="green.600">
+                  <Text fontSize="sm" color={systemHealthSubtext}>
                     Operacional
                   </Text>
                 </VStack>
               </HStack>
             </Box>
-            <Box p={4} borderWidth={1} borderRadius="md" bg="green.50" borderColor="green.200">
+            <Box
+              p={4}
+              borderWidth={1}
+              borderRadius="md"
+              bg={systemHealthBg}
+              borderColor={systemHealthBorder}
+              transition="all 0.2s"
+              _hover={{ shadow: 'sm' }}
+            >
               <HStack>
                 <Icon as={MdDevices} color="green.500" boxSize={6} />
                 <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color="green.700">
+                  <Text fontWeight="bold" color={systemHealthText}>
                     Gabinetes
                   </Text>
-                  <Text fontSize="sm" color="green.600">
+                  <Text fontSize="sm" color={systemHealthSubtext}>
                     {stats?.onlineCabinets}/{stats?.totalCabinets} en línea
                   </Text>
                 </VStack>
               </HStack>
             </Box>
-            <Box p={4} borderWidth={1} borderRadius="md" bg="blue.50" borderColor="blue.200">
+            <Box
+              p={4}
+              borderWidth={1}
+              borderRadius="md"
+              bg={batteryBg}
+              borderColor={batteryBorder}
+              transition="all 0.2s"
+              _hover={{ shadow: 'sm' }}
+            >
               <HStack>
                 <Icon as={MdBattery80} color="blue.500" boxSize={6} />
                 <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" color="blue.700">
+                  <Text fontWeight="bold" color={batteryText}>
                     Baterías
                   </Text>
-                  <Text fontSize="sm" color="blue.600">
+                  <Text fontSize="sm" color={batterySubtext}>
                     {stats?.availableBatteries} disponibles
                   </Text>
                 </VStack>

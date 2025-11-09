@@ -18,7 +18,6 @@ import {
   StatNumber,
   StatHelpText,
   useToast,
-  Spinner,
   Divider,
   Icon,
   Tooltip,
@@ -43,6 +42,7 @@ import { FaWifi, FaBatteryFull, FaNetworkWired, FaMobile } from 'react-icons/fa'
 import { apiService } from '@/services/api';
 import type { Cabinet, CabinetDetails, SlotInfo } from '@/types/api.types';
 import DeviceRegistrationModal from '@/components/cabinets/DeviceRegistrationModal';
+import { DetailsSkeleton } from '@/components/common/SkeletonLoader';
 
 export default function CabinetDetailsPage() {
   const { cabinetId } = useParams<{ cabinetId: string }>();
@@ -228,10 +228,7 @@ export default function CabinetDetailsPage() {
   if (loading) {
     return (
       <Container maxW="container.xl" py={8}>
-        <VStack spacing={4}>
-          <Spinner size="xl" color="brand.500" />
-          <Text>Cargando detalles del gabinete...</Text>
-        </VStack>
+        <DetailsSkeleton />
       </Container>
     );
   }

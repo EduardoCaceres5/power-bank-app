@@ -12,7 +12,6 @@ import {
   Flex,
   Input,
   IconButton,
-  Spinner,
   Alert,
   AlertIcon,
   Progress,
@@ -22,6 +21,7 @@ import {
 import { MdRefresh } from 'react-icons/md';
 import { apiService } from '@/services/api';
 import type { Battery } from '@/types/api.types';
+import { TableSkeleton } from '@/components/common/SkeletonLoader';
 
 export default function Batteries() {
   const [batteries, setBatteries] = useState<Battery[]>([]);
@@ -92,9 +92,9 @@ export default function Batteries() {
       {/* Batteries Table */}
       <Box bg={bgColor} borderRadius="lg" shadow="sm" borderWidth="1px" overflow="hidden">
         {loading ? (
-          <Flex justify="center" align="center" h="400px">
-            <Spinner size="xl" color="brand.500" />
-          </Flex>
+          <Box p={6}>
+            <TableSkeleton rows={10} />
+          </Box>
         ) : error ? (
           <Alert status="error">
             <AlertIcon />

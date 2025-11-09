@@ -24,6 +24,8 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
 import {
   MdAdd,
@@ -43,6 +45,10 @@ import AddCabinetModal from '@/components/cabinets/AddCabinetModal';
 import EditCabinetModal from '@/components/cabinets/EditCabinetModal';
 import DeleteCabinetDialog from '@/components/cabinets/DeleteCabinetDialog';
 import DeviceRegistrationModal from '@/components/cabinets/DeviceRegistrationModal';
+import { TableSkeleton } from '@/components/common/SkeletonLoader';
+import { ResponsiveCabinetCard } from '@/components/common/ResponsiveTable';
+import { Pagination } from '@/components/common/Pagination';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 
 export default function Cabinets() {
   const navigate = useNavigate();
@@ -69,6 +75,7 @@ export default function Cabinets() {
   const hoverBg = useColorModeValue('gray.50', 'gray.700');
   const textSecondary = useColorModeValue('gray.600', 'gray.400');
   const emptyStateColor = useColorModeValue('gray.500', 'gray.400');
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
     loadCabinets();
@@ -171,6 +178,9 @@ export default function Cabinets() {
 
   return (
     <Box>
+      {/* Breadcrumbs */}
+      <Breadcrumbs />
+
       {/* Filters and Actions */}
       <Flex mb={6} gap={4} wrap="wrap" align="center" justify="space-between">
         <HStack spacing={3}>
@@ -190,14 +200,28 @@ export default function Cabinets() {
             <option value="0">Fuera de Línea</option>
           </Select>
           <IconButton
-            aria-label="Actualizar"
+            aria-label="Actualizar lista de gabinetes"
             icon={<MdRefresh />}
             onClick={loadCabinets}
             variant="ghost"
+            _focusVisible={{
+              outline: '2px solid',
+              outlineColor: 'brand.500',
+              outlineOffset: '2px',
+            }}
           />
         </HStack>
 
-        <Button leftIcon={<MdAdd />} colorScheme="brand" onClick={addModal.onOpen}>
+        <Button
+          leftIcon={<MdAdd />}
+          colorScheme="brand"
+          onClick={addModal.onOpen}
+          _focusVisible={{
+            outline: '2px solid',
+            outlineColor: 'brand.600',
+            outlineOffset: '2px',
+          }}
+        >
           Agregar Gabinete
         </Button>
       </Flex>
@@ -205,9 +229,9 @@ export default function Cabinets() {
       {/* Cabinets Table */}
       <Box bg={bgColor} borderRadius="lg" shadow="sm" borderWidth="1px" borderColor={borderColor} overflow="hidden">
         {loading ? (
-          <Flex justify="center" align="center" h="400px">
-            <Spinner size="xl" color="brand.500" />
-          </Flex>
+          <Box p={6}>
+            <TableSkeleton rows={10} />
+          </Box>
         ) : error ? (
           <Alert status="error">
             <AlertIcon />
@@ -220,6 +244,16 @@ export default function Cabinets() {
               No se encontraron gabinetes
             </Box>
           </Flex>
+        ) : isMobile ? (
+          <VStack spacing={3} p={4}>
+            {cabinets.map((cabinet) => (
+              <ResponsiveCabinetCard
+                key={cabinet.id}
+                cabinet={cabinet}
+                onClick={() => handleViewDetails(cabinet.cabinet_id)}
+              />
+            ))}
+          </VStack>
         ) : (
           <Table variant="simple">
             <Thead>
@@ -335,23 +369,15 @@ export default function Cabinets() {
 
       {/* Pagination */}
       {total > 20 && (
-        <Flex justify="center" mt={6}>
-          <HStack>
-            <Button onClick={() => setPage(page - 1)} isDisabled={page === 1} size="sm">
-              Anterior
-            </Button>
-            <Box px={4}>
-              Página {page} de {Math.ceil(total / 20)}
-            </Box>
-            <Button
-              onClick={() => setPage(page + 1)}
-              isDisabled={page >= Math.ceil(total / 20)}
-              size="sm"
-            >
-              Siguiente
-            </Button>
-          </HStack>
-        </Flex>
+        <Box mt={6}>
+          <Pagination
+            currentPage={page}
+            totalPages={Math.ceil(total / 20)}
+            onPageChange={setPage}
+            pageSize={20}
+            totalItems={total}
+          />
+        </Box>
       )}
 
       {/* Modals */}
