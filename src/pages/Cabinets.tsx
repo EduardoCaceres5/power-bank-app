@@ -25,14 +25,27 @@ import {
   MenuList,
   MenuItem,
 } from '@chakra-ui/react';
-import { MdAdd, MdEdit, MdDelete, MdMoreVert, MdRefresh, MdPowerSettingsNew, MdDevices } from 'react-icons/md';
+import {
+  MdAdd,
+  MdEdit,
+  MdDelete,
+  MdMoreVert,
+  MdRefresh,
+  MdPowerSettingsNew,
+  MdDevices,
+  MdVisibility,
+  MdDeviceHub,
+} from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
 import { apiService } from '@/services/api';
 import type { Cabinet } from '@/types/api.types';
 import AddCabinetModal from '@/components/cabinets/AddCabinetModal';
 import EditCabinetModal from '@/components/cabinets/EditCabinetModal';
 import DeleteCabinetDialog from '@/components/cabinets/DeleteCabinetDialog';
+import DeviceRegistrationModal from '@/components/cabinets/DeviceRegistrationModal';
 
 export default function Cabinets() {
+  const navigate = useNavigate();
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +61,14 @@ export default function Cabinets() {
   const addModal = useDisclosure();
   const editModal = useDisclosure();
   const deleteDialog = useDisclosure();
+  const deviceRegModal = useDisclosure();
 
   const toast = useToast();
   const bgColor = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const hoverBg = useColorModeValue('gray.50', 'gray.700');
+  const textSecondary = useColorModeValue('gray.600', 'gray.400');
+  const emptyStateColor = useColorModeValue('gray.500', 'gray.400');
 
   useEffect(() => {
     loadCabinets();
@@ -127,6 +145,30 @@ export default function Cabinets() {
     deleteDialog.onClose();
   };
 
+  const handleRegisterDevice = (cabinet: Cabinet) => {
+    setSelectedCabinet(cabinet);
+    deviceRegModal.onOpen();
+  };
+
+  const handleViewDetails = (cabinetId: string) => {
+    navigate(`/cabinets/${cabinetId}`);
+  };
+
+  const formatLastPing = (lastPingAt?: string) => {
+    if (!lastPingAt) return '-';
+    const date = new Date(lastPingAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `${diffMins}m`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d`;
+  };
+
   return (
     <Box>
       {/* Filters and Actions */}
@@ -161,7 +203,7 @@ export default function Cabinets() {
       </Flex>
 
       {/* Cabinets Table */}
-      <Box bg={bgColor} borderRadius="lg" shadow="sm" borderWidth="1px" overflow="hidden">
+      <Box bg={bgColor} borderRadius="lg" shadow="sm" borderWidth="1px" borderColor={borderColor} overflow="hidden">
         {loading ? (
           <Flex justify="center" align="center" h="400px">
             <Spinner size="xl" color="brand.500" />
@@ -173,8 +215,8 @@ export default function Cabinets() {
           </Alert>
         ) : cabinets.length === 0 ? (
           <Flex justify="center" align="center" h="400px" direction="column">
-            <MdDevices size={48} color="gray" />
-            <Box mt={4} color="gray.500">
+            <MdDevices size={48} opacity={0.5} />
+            <Box mt={4} color={emptyStateColor}>
               No se encontraron gabinetes
             </Box>
           </Flex>
@@ -184,31 +226,64 @@ export default function Cabinets() {
               <Tr>
                 <Th>ID Gabinete</Th>
                 <Th>Modelo</Th>
-                <Th>Código QR</Th>
                 <Th>Estado</Th>
-                <Th>SIM</Th>
+                <Th>Último Ping</Th>
+                <Th>Señal</Th>
+                <Th>Dispositivo</Th>
                 <Th>Dirección</Th>
-                <Th>Creado</Th>
                 <Th>Acciones</Th>
               </Tr>
             </Thead>
             <Tbody>
               {cabinets.map((cabinet) => (
-                <Tr key={cabinet.id}>
+                <Tr
+                  key={cabinet.id}
+                  _hover={{ bg: hoverBg, cursor: 'pointer' }}
+                  onClick={() => handleViewDetails(cabinet.cabinet_id)}
+                  transition="background-color 0.2s"
+                >
                   <Td fontWeight="medium">{cabinet.cabinet_id}</Td>
                   <Td>
                     <Badge colorScheme="blue">{cabinet.model.toUpperCase()}</Badge>
                   </Td>
-                  <Td>{cabinet.qrcode}</Td>
                   <Td>
                     <Badge colorScheme={cabinet.is_online === 1 ? 'green' : 'red'}>
                       {cabinet.is_online === 1 ? 'En Línea' : 'Fuera de Línea'}
                     </Badge>
                   </Td>
-                  <Td>{cabinet.sim || '-'}</Td>
-                  <Td>{cabinet.address || '-'}</Td>
-                  <Td>{new Date(cabinet.created_at).toLocaleDateString()}</Td>
+                  <Td fontSize="sm" color={textSecondary}>
+                    {formatLastPing(cabinet.lastPingAt)}
+                  </Td>
                   <Td>
+                    {cabinet.signalStrength ? (
+                      <Badge
+                        colorScheme={
+                          cabinet.signalStrength >= 20
+                            ? 'green'
+                            : cabinet.signalStrength >= 10
+                              ? 'yellow'
+                              : 'red'
+                        }
+                      >
+                        {cabinet.signalStrength}/31
+                      </Badge>
+                    ) : (
+                      '-'
+                    )}
+                  </Td>
+                  <Td>
+                    {cabinet.deviceId ? (
+                      <Badge colorScheme="green" variant="subtle">
+                        Registrado
+                      </Badge>
+                    ) : (
+                      <Badge colorScheme="gray" variant="subtle">
+                        Sin registrar
+                      </Badge>
+                    )}
+                  </Td>
+                  <Td>{cabinet.address || '-'}</Td>
+                  <Td onClick={(e) => e.stopPropagation()}>
                     <Menu>
                       <MenuButton
                         as={IconButton}
@@ -218,6 +293,20 @@ export default function Cabinets() {
                         size="sm"
                       />
                       <MenuList>
+                        <MenuItem
+                          icon={<MdVisibility />}
+                          onClick={() => handleViewDetails(cabinet.cabinet_id)}
+                        >
+                          Ver Detalles
+                        </MenuItem>
+                        {!cabinet.deviceId && (
+                          <MenuItem
+                            icon={<MdDeviceHub />}
+                            onClick={() => handleRegisterDevice(cabinet)}
+                          >
+                            Registrar Dispositivo
+                          </MenuItem>
+                        )}
                         <MenuItem icon={<MdEdit />} onClick={() => handleEdit(cabinet)}>
                           Editar
                         </MenuItem>
@@ -280,6 +369,12 @@ export default function Cabinets() {
             onClose={deleteDialog.onClose}
             cabinet={selectedCabinet}
             onSuccess={handleDeleteSuccess}
+          />
+          <DeviceRegistrationModal
+            isOpen={deviceRegModal.isOpen}
+            onClose={deviceRegModal.onClose}
+            onSuccess={loadCabinets}
+            cabinetId={selectedCabinet.cabinet_id}
           />
         </>
       )}

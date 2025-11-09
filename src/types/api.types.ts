@@ -19,6 +19,13 @@ export interface Cabinet {
   longitude?: number;
   created_at: string;
   updated_at?: string;
+
+  // Device monitoring fields
+  lastPingAt?: string;
+  signalStrength?: number;
+  ipAddress?: string;
+  connectionType?: 'wifi' | 'ethernet' | '4g';
+  deviceId?: string;
 }
 
 export interface CabinetListResponse {
@@ -217,6 +224,56 @@ export interface AuthResponse {
     user: User;
     token: string;
     expiresIn: number;
+  };
+  error?: string;
+}
+
+// Device Authentication Types
+export interface DeviceRegistrationRequest {
+  cabinetId: string;
+  deviceId: string;
+  deviceSecret: string;
+}
+
+export interface DeviceLoginRequest {
+  deviceId: string;
+  deviceSecret: string;
+}
+
+export interface DeviceAuthResponse {
+  success: boolean;
+  data?: {
+    token: string;
+    cabinetId: string;
+    expiresIn: number;
+  };
+  error?: string;
+}
+
+// Device Heartbeat Types
+export interface DeviceHeartbeatRequest {
+  status?: 'ONLINE' | 'OFFLINE' | 'MAINTENANCE' | 'OUT_OF_SERVICE';
+  signalStrength?: number;
+  ipAddress?: string;
+  connectionType?: 'wifi' | 'ethernet' | '4g';
+  slots?: HeartbeatSlot[];
+}
+
+export interface HeartbeatSlot {
+  slotNumber: number;
+  isOccupied: boolean;
+  powerBankId?: string;
+  batteryLevel?: number;
+}
+
+export interface DeviceHeartbeatResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    cabinetId: string;
+    status: string;
+    lastPingAt: string;
+    slotsUpdated: number;
   };
   error?: string;
 }

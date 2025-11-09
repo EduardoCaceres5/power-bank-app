@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import type {
   ApiResponse,
+  Cabinet,
   CabinetListResponse,
   AddCabinetRequest,
   CabinetDetails,
@@ -19,6 +20,11 @@ import type {
   RegisterRequest,
   AuthResponse,
   User,
+  DeviceRegistrationRequest,
+  DeviceLoginRequest,
+  DeviceAuthResponse,
+  DeviceHeartbeatRequest,
+  DeviceHeartbeatResponse,
 } from '@/types/api.types';
 
 class ApiService {
@@ -117,7 +123,7 @@ class ApiService {
     return response.data;
   }
 
-  async getCabinetInfo(cabinetId: string): Promise<ApiResponse> {
+  async getCabinetInfo(cabinetId: string): Promise<ApiResponse<Cabinet>> {
     const response = await this.client.get(`/wscharge/cabinets/${cabinetId}`);
     return response.data;
   }
@@ -263,6 +269,28 @@ class ApiService {
     [key: string]: unknown;
   }): Promise<ApiResponse> {
     const response = await this.client.post('/wscharge/settings', data);
+    return response.data;
+  }
+
+  // ==================== DEVICE AUTH & MONITORING ====================
+
+  async registerDevice(data: DeviceRegistrationRequest): Promise<ApiResponse> {
+    const response = await this.client.post('/device/auth/register', data);
+    return response.data;
+  }
+
+  async deviceLogin(data: DeviceLoginRequest): Promise<DeviceAuthResponse> {
+    const response = await this.client.post('/device/auth/login', data);
+    return response.data;
+  }
+
+  async sendHeartbeat(data: DeviceHeartbeatRequest): Promise<DeviceHeartbeatResponse> {
+    const response = await this.client.post('/device/heartbeat', data);
+    return response.data;
+  }
+
+  async getDeviceStatus(cabinetId: string): Promise<ApiResponse> {
+    const response = await this.client.get(`/device/status/${cabinetId}`);
     return response.data;
   }
 }
