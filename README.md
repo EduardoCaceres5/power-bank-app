@@ -61,6 +61,27 @@ Admin dashboard para gestionar el sistema de Power Banks con integración WsChar
 - Personalizar códigos QR
 - Imágenes por defecto de pantallas
 
+## 📖 Documentación
+
+Para más información detallada, consulta la documentación en la carpeta [docs/](docs/):
+
+### Guías
+- [**Inicio Rápido**](docs/guides/getting-started.md) - Guía para comenzar rápidamente
+- [**Configuración de Base de Datos**](docs/guides/setup-database.md) - Scripts SQL para poblar datos
+- [**Guía de Colores y Tema**](docs/guides/theme-colors.md) - Paleta de colores y personalización
+
+### Deployment
+- [**Deploy en Vercel**](docs/deployment/vercel.md) - Guía completa de despliegue con pnpm
+
+### Diseño
+- [**Uso del Logo**](docs/design/logo-usage.md) - Guía de uso del logo
+- [**Diseño de Login**](docs/design/login-design.md) - Especificaciones del diseño de login
+
+### Changelog
+- Ver [docs/changelog/](docs/changelog/) para historial de cambios e implementaciones
+
+---
+
 ## Instalación
 
 ### 1. Instalar dependencias
@@ -112,11 +133,25 @@ npm run preview
 
 ```
 admin/
+├── docs/                # 📚 Documentación
+│   ├── guides/          # Guías de uso
+│   │   ├── getting-started.md
+│   │   ├── setup-database.md
+│   │   └── theme-colors.md
+│   ├── deployment/      # Guías de deployment
+│   │   └── vercel.md
+│   ├── design/          # Documentación de diseño
+│   │   ├── logo-usage.md
+│   │   └── login-design.md
+│   └── changelog/       # Historial de cambios
 ├── public/              # Archivos estáticos
 ├── src/
 │   ├── components/      # Componentes reutilizables
-│   │   ├── layout/      # Layout principal (Sidebar, Header)
-│   │   └── cabinets/    # Componentes específicos de gabinetes
+│   │   ├── layout/      # Layout (Sidebar, Header)
+│   │   ├── cabinets/    # Componentes de gabinetes
+│   │   ├── charts/      # Gráficos y visualizaciones
+│   │   ├── common/      # Componentes comunes
+│   │   └── auth/        # Componentes de autenticación
 │   ├── pages/           # Páginas de la aplicación
 │   │   ├── Dashboard.tsx
 │   │   ├── Cabinets.tsx
@@ -126,16 +161,17 @@ admin/
 │   │   ├── ScreenPlans.tsx
 │   │   └── Settings.tsx
 │   ├── services/        # Servicios API
-│   │   └── api.ts
 │   ├── types/           # Definiciones TypeScript
-│   │   └── api.types.ts
+│   ├── hooks/           # Custom React hooks
+│   ├── contexts/        # React Context providers
+│   ├── theme/           # Configuración de tema
 │   ├── App.tsx          # Componente raíz
-│   ├── main.tsx         # Punto de entrada
-│   └── theme.ts         # Tema de Chakra UI
+│   └── main.tsx         # Punto de entrada
 ├── index.html
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
+├── vercel.json          # Configuración de Vercel
 └── README.md
 ```
 
