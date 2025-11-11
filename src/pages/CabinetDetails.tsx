@@ -9,6 +9,8 @@ import {
   HStack,
   Text,
   Badge,
+  Stack,
+  ButtonGroup,
   Grid,
   GridItem,
   Card,
@@ -28,6 +30,8 @@ import {
   SimpleGrid,
   useDisclosure,
   useColorModeValue,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react';
 import {
   ArrowBackIcon,
@@ -37,6 +41,7 @@ import {
   UnlockIcon,
   CheckCircleIcon,
   WarningIcon,
+  SettingsIcon,
 } from '@chakra-ui/icons';
 import { FaWifi, FaBatteryFull, FaNetworkWired, FaMobile } from 'react-icons/fa';
 import { apiService } from '@/services/api';
@@ -257,37 +262,110 @@ export default function CabinetDetailsPage() {
     <Container maxW="container.xl" py={8}>
       <VStack spacing={6} align="stretch">
         {/* Header */}
-        <HStack justify="space-between">
-          <HStack spacing={4}>
+        <Stack
+          direction={{ base: 'column', md: 'row' }}
+          justify="space-between"
+          align={{ base: 'stretch', md: 'center' }}
+          spacing={4}
+        >
+          <HStack spacing={4} flexWrap="wrap" align="center">
             <Button
               leftIcon={<ArrowBackIcon />}
               onClick={() => navigate('/cabinets')}
               variant="ghost"
+              size={{ base: 'sm', md: 'md' }}
             >
               Volver
             </Button>
-            <Heading size="lg">{cabinet.cabinet_id}</Heading>
-            <Badge colorScheme={cabinet.is_online ? 'green' : 'red'} fontSize="md" px={3} py={1}>
+            <Heading size={{ base: 'md', md: 'lg' }}>{cabinet.cabinet_id}</Heading>
+            <Badge
+              colorScheme={cabinet.is_online ? 'green' : 'red'}
+              fontSize={{ base: 'sm', md: 'md' }}
+              px={{ base: 2, md: 3 }}
+              py={{ base: 0.5, md: 1 }}
+            >
               {cabinet.is_online ? 'EN LÍNEA' : 'FUERA DE LÍNEA'}
             </Badge>
           </HStack>
-          <HStack>
+          {/* Botones en mobile (wrap) */}
+          <Wrap spacing={3} display={{ base: 'flex', md: 'none' }}>
+            <WrapItem>
+              <Button
+                leftIcon={<RepeatIcon />}
+                onClick={fetchData}
+                isLoading={refreshing}
+                variant="solid"
+                colorScheme="brand"
+                size="sm"
+                boxShadow="sm"
+                _hover={{ boxShadow: 'md', transform: 'translateY(-1px)' }}
+              >
+                Actualizar
+              </Button>
+            </WrapItem>
+            <WrapItem>
+              <Button
+                leftIcon={<UnlockIcon />}
+                onClick={handleOpenAllSlots}
+                colorScheme="orange"
+                variant="solid"
+                size="sm"
+                boxShadow="sm"
+                _hover={{ boxShadow: 'md', transform: 'translateY(-1px)' }}
+              >
+                Abrir Todas
+              </Button>
+            </WrapItem>
+            <WrapItem>
+              <Button
+                leftIcon={<SettingsIcon />}
+                onClick={handleRestartCabinet}
+                colorScheme="red"
+                variant="solid"
+                size="sm"
+                boxShadow="sm"
+                _hover={{ boxShadow: 'md', transform: 'translateY(-1px)' }}
+              >
+                Reiniciar
+              </Button>
+            </WrapItem>
+          </Wrap>
+
+          {/* Botones en desktop/tablet (grupo adjunto) */}
+          <ButtonGroup
+            isAttached
+            variant="solid"
+            size="md"
+            spacing={0}
+            display={{ base: 'none', md: 'inline-flex' }}
+          >
             <Button
               leftIcon={<RepeatIcon />}
               onClick={fetchData}
               isLoading={refreshing}
-              variant="outline"
+              colorScheme="brand"
+              _hover={{ boxShadow: 'md' }}
             >
               Actualizar
             </Button>
-            <Button leftIcon={<UnlockIcon />} onClick={handleOpenAllSlots} colorScheme="orange">
+            <Button
+              leftIcon={<UnlockIcon />}
+              onClick={handleOpenAllSlots}
+              colorScheme="orange"
+              _hover={{ boxShadow: 'md' }}
+            >
               Abrir Todas
             </Button>
-            <Button onClick={handleRestartCabinet} colorScheme="red">
+            <Button
+              leftIcon={<SettingsIcon />}
+              onClick={handleRestartCabinet}
+              colorScheme="red"
+              _hover={{ boxShadow: 'md' }}
+            >
               Reiniciar
             </Button>
-          </HStack>
-        </HStack>
+          </ButtonGroup>
+        </Stack>
 
         {/* Stats */}
         <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} spacing={4}>
@@ -334,9 +412,7 @@ export default function CabinetDetailsPage() {
                 </StatLabel>
                 <StatNumber fontSize="lg">{formatLastPing(cabinet.lastPingAt)}</StatNumber>
                 <StatHelpText>
-                  {cabinet.lastPingAt
-                    ? new Date(cabinet.lastPingAt).toLocaleString()
-                    : 'Sin datos'}
+                  {cabinet.lastPingAt ? new Date(cabinet.lastPingAt).toLocaleString() : 'Sin datos'}
                 </StatHelpText>
               </Stat>
             </CardBody>
