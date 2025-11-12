@@ -49,6 +49,7 @@ import { TableSkeleton } from '@/components/common/SkeletonLoader';
 import { ResponsiveCabinetCard } from '@/components/common/ResponsiveTable';
 import { Pagination } from '@/components/common/Pagination';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
+import { normalizeCabinet } from '@/utils/cabinet';
 
 export default function Cabinets() {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ export default function Cabinets() {
       const response = await apiService.getCabinets(params);
 
       if (response.success && response.data) {
-        setCabinets(response.data.list);
+        setCabinets(response.data.list.map((item) => normalizeCabinet(item)));
         setTotal(response.data.total);
       }
     } catch (err) {

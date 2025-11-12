@@ -46,6 +46,7 @@ import {
 import { FaWifi, FaBatteryFull, FaNetworkWired, FaMobile } from 'react-icons/fa';
 import { apiService } from '@/services/api';
 import type { Cabinet, CabinetDetails, SlotInfo } from '@/types/api.types';
+import { normalizeCabinet } from '@/utils/cabinet';
 import DeviceRegistrationModal from '@/components/cabinets/DeviceRegistrationModal';
 import { DetailsSkeleton } from '@/components/common/SkeletonLoader';
 
@@ -81,7 +82,7 @@ export default function CabinetDetailsPage() {
       ]);
 
       if (infoResponse.success && infoResponse.data) {
-        setCabinet(infoResponse.data);
+        setCabinet(normalizeCabinet(infoResponse.data));
       }
 
       if (detailsResponse.success && detailsResponse.data) {

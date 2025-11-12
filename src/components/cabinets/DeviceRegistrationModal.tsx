@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { isAxiosError } from 'axios';
 import {
   Modal,
   ModalOverlay,
@@ -108,9 +109,16 @@ export default function DeviceRegistrationModal({
         setFormData({ cabinetId: '', deviceId: '', deviceSecret: '' });
       }
     } catch (err) {
+      let description = 'Error desconocido';
+      if (isAxiosError(err)) {
+        const apiMessage = (err.response?.data as { message?: string })?.message;
+        description = apiMessage || err.message;
+      } else if (err instanceof Error) {
+        description = err.message;
+      }
       toast({
         title: 'Error al registrar dispositivo',
-        description: err instanceof Error ? err.message : 'Error desconocido',
+        description,
         status: 'error',
         duration: 5000,
       });
@@ -235,8 +243,8 @@ export default function DeviceRegistrationModal({
               <Alert status="warning" borderRadius="md">
                 <AlertIcon />
                 <AlertDescription fontSize="xs">
-                  <strong>Importante:</strong> El deviceSecret se almacenará hasheado en la base
-                  de datos. Cópialo ahora y guárdalo de forma segura en el dispositivo físico. No
+                  <strong>Importante:</strong> El deviceSecret se almacenará hasheado en la base de
+                  datos. Cópialo ahora y guárdalo de forma segura en el dispositivo físico. No
                   podrás recuperarlo después.
                 </AlertDescription>
               </Alert>

@@ -8,7 +8,6 @@ import type {
   BatteryListResponse,
   MaterialListResponse,
   AddMaterialRequest,
-  Material,
   GroupListResponse,
   GroupDetail,
   AddGroupRequest,
@@ -66,9 +65,15 @@ class ApiService {
 
         // If 401 unauthorized, clear token and redirect to login
         if (error.response?.status === 401) {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
-          window.location.href = '/login';
+          const requestUrl = error.config?.url ?? '';
+          const bypassLogoutPaths = ['/device/auth/register'];
+          const shouldBypassLogout = bypassLogoutPaths.some((path) => requestUrl.includes(path));
+
+          if (!shouldBypassLogout) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            window.location.href = '/login';
+          }
         }
 
         return Promise.reject(error);
@@ -138,10 +143,7 @@ class ApiService {
     return response.data;
   }
 
-  async updateCabinet(
-    cabinetId: string,
-    data: Partial<AddCabinetRequest>
-  ): Promise<ApiResponse> {
+  async updateCabinet(cabinetId: string, data: Partial<AddCabinetRequest>): Promise<ApiResponse> {
     const response = await this.client.put(`/wscharge/cabinets/${cabinetId}`, data);
     return response.data;
   }
@@ -269,10 +271,7 @@ class ApiService {
     return response.data;
   }
 
-  async setSystemConfig(data: {
-    type: string;
-    [key: string]: unknown;
-  }): Promise<ApiResponse> {
+  async setSystemConfig(data: { type: string; [key: string]: unknown }): Promise<ApiResponse> {
     const response = await this.client.post('/wscharge/settings', data);
     return response.data;
   }
@@ -306,14 +305,18 @@ class ApiService {
     return response.data;
   }
 
-  async getRevenueStats(period: '7d' | '30d' | '90d' | '1y' = '30d'): Promise<ApiResponse<RevenueStats>> {
+  async getRevenueStats(
+    period: '7d' | '30d' | '90d' | '1y' = '30d'
+  ): Promise<ApiResponse<RevenueStats>> {
     const response = await this.client.get('/admin/revenue/stats', {
       params: { period },
     });
     return response.data;
   }
 
-  async getRentalStats(period: '7d' | '30d' | '90d' | '1y' = '30d'): Promise<ApiResponse<RentalStats>> {
+  async getRentalStats(
+    period: '7d' | '30d' | '90d' | '1y' = '30d'
+  ): Promise<ApiResponse<RentalStats>> {
     const response = await this.client.get('/admin/rentals/stats', {
       params: { period },
     });
@@ -335,7 +338,11 @@ class ApiService {
     return response.data;
   }
 
-  async getNearbyCabinets(latitude: number, longitude: number, radius?: number): Promise<ApiResponse<Cabinet[]>> {
+  async getNearbyCabinets(
+    latitude: number,
+    longitude: number,
+    radius?: number
+  ): Promise<ApiResponse<Cabinet[]>> {
     const response = await this.client.get('/cabinets/nearby', {
       params: { latitude, longitude, radius },
     });
