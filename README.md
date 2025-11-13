@@ -105,7 +105,38 @@ Edita el archivo `.env`:
 VITE_API_URL=http://localhost:3000/api/v1
 VITE_APP_NAME=Power Bank Admin
 VITE_APP_VERSION=1.0.0
+VITE_ENABLE_DEVICE_REGISTRATION=false
 ```
+
+#### Variables de Entorno Disponibles
+
+| Variable | Descripción | Valor por defecto |
+|----------|-------------|-------------------|
+| `VITE_API_URL` | URL del backend API | `http://localhost:3000/api/v1` |
+| `VITE_APP_NAME` | Nombre de la aplicación | `Power Bank Admin` |
+| `VITE_APP_VERSION` | Versión de la aplicación | `1.0.0` |
+| `VITE_ENABLE_DEVICE_REGISTRATION` | Habilita el registro manual de dispositivos | `false` |
+
+#### Feature Flags
+
+**`VITE_ENABLE_DEVICE_REGISTRATION`**
+
+Esta variable controla la visibilidad de la funcionalidad de registro de dispositivos:
+
+- **`false` (recomendado)**: Oculta la funcionalidad de registro de dispositivo. Usar cuando la API externa (WsCharge) ya maneja los heartbeats y la autenticación de dispositivos.
+- **`true`**: Muestra la funcionalidad de registro de dispositivo. Usar solo si planeas implementar tu propio sistema de heartbeats y autenticación de dispositivos.
+
+**¿Cuándo usar cada opción?**
+
+- **API Externa maneja heartbeats** → `VITE_ENABLE_DEVICE_REGISTRATION=false`
+  - Los dispositivos físicos ya están configurados con la API externa
+  - No necesitas registrar credenciales manualmente
+  - La columna "Dispositivo" mostrará "Gestionado externamente"
+
+- **Implementación propia de heartbeats** → `VITE_ENABLE_DEVICE_REGISTRATION=true`
+  - Estás desarrollando tu propio sistema de autenticación de dispositivos
+  - Necesitas registrar `deviceId` y `deviceSecret` para cada gabinete
+  - Los dispositivos físicos usarán JWT tokens para autenticarse
 
 ### 3. Ejecutar en desarrollo
 

@@ -54,6 +54,7 @@ import { normalizeCabinet } from '@/utils/cabinet';
 export default function Cabinets() {
   const navigate = useNavigate();
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
+  console.log('🚀 ~ cabinets:', cabinets);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -64,6 +65,9 @@ export default function Cabinets() {
   });
 
   const [selectedCabinet, setSelectedCabinet] = useState<Cabinet | null>(null);
+
+  // Feature flag para registro de dispositivos
+  const enableDeviceRegistration = import.meta.env.VITE_ENABLE_DEVICE_REGISTRATION === 'true';
 
   const addModal = useDisclosure();
   const editModal = useDisclosure();
@@ -162,19 +166,13 @@ export default function Cabinets() {
     navigate(`/cabinets/${cabinetId}`);
   };
 
-  const formatLastPing = (lastPingAt?: string) => {
-    if (!lastPingAt) return '-';
-    const date = new Date(lastPingAt);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+  const formatTimestampToAsuncion = (timestampInSeconds?: number) => {
+    if (typeof timestampInSeconds !== 'number' || !timestampInSeconds) {
+      return '-';
+    }
+    const date = new Date(timestampInSeconds * 1000);
 
-    if (diffMins < 1) return 'Ahora';
-    if (diffMins < 60) return `${diffMins}m`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d`;
+    return date.toLocaleString('es-PY');
   };
 
   return (
@@ -189,12 +187,16 @@ export default function Cabinets() {
             placeholder="Buscar por ID de Gabinete"
             value={filters.cabinet_id}
             onChange={(e) => setFilters({ ...filters, cabinet_id: e.target.value })}
+            minW="220px"
             maxW="250px"
           />
           <Select
             value={filters.is_online}
-            onChange={(e) => setFilters({ ...filters, is_online: e.target.value as '' | '0' | '1' })}
-            maxW="150px"
+            onChange={(e) =>
+              setFilters({ ...filters, is_online: e.target.value as '' | '0' | '1' })
+            }
+            minW="150px"
+            maxW="200px"
           >
             <option value="">Todos los Estados</option>
             <option value="1">En Línea</option>
@@ -228,7 +230,14 @@ export default function Cabinets() {
       </Flex>
 
       {/* Cabinets Table */}
-      <Box bg={bgColor} borderRadius="lg" shadow="sm" borderWidth="1px" borderColor={borderColor} overflow="hidden">
+      <Box
+        bg={bgColor}
+        borderRadius="lg"
+        shadow="sm"
+        borderWidth="1px"
+        borderColor={borderColor}
+        overflow="hidden"
+      >
         {loading ? (
           <Box p={6}>
             <TableSkeleton rows={10} />
@@ -262,10 +271,8 @@ export default function Cabinets() {
                 <Th>ID Gabinete</Th>
                 <Th>Modelo</Th>
                 <Th>Estado</Th>
+                <Th>IP</Th>
                 <Th>Último Ping</Th>
-                <Th>Señal</Th>
-                <Th>Dispositivo</Th>
-                <Th>Dirección</Th>
                 <Th>Acciones</Th>
               </Tr>
             </Thead>
@@ -287,37 +294,13 @@ export default function Cabinets() {
                     </Badge>
                   </Td>
                   <Td fontSize="sm" color={textSecondary}>
-                    {formatLastPing(cabinet.lastPingAt)}
+                    {cabinet.ip}
                   </Td>
-                  <Td>
-                    {cabinet.signalStrength ? (
-                      <Badge
-                        colorScheme={
-                          cabinet.signalStrength >= 20
-                            ? 'green'
-                            : cabinet.signalStrength >= 10
-                              ? 'yellow'
-                              : 'red'
-                        }
-                      >
-                        {cabinet.signalStrength}/31
-                      </Badge>
-                    ) : (
-                      '-'
-                    )}
+
+                  <Td fontSize="sm" color={textSecondary}>
+                    {formatTimestampToAsuncion(cabinet.heart_time)}
                   </Td>
-                  <Td>
-                    {cabinet.deviceId ? (
-                      <Badge colorScheme="green" variant="subtle">
-                        Registrado
-                      </Badge>
-                    ) : (
-                      <Badge colorScheme="gray" variant="subtle">
-                        Sin registrar
-                      </Badge>
-                    )}
-                  </Td>
-                  <Td>{cabinet.address || '-'}</Td>
+
                   <Td onClick={(e) => e.stopPropagation()}>
                     <Menu>
                       <MenuButton
@@ -334,7 +317,7 @@ export default function Cabinets() {
                         >
                           Ver Detalles
                         </MenuItem>
-                        {!cabinet.deviceId && (
+                        {enableDeviceRegistration && !cabinet.deviceId && (
                           <MenuItem
                             icon={<MdDeviceHub />}
                             onClick={() => handleRegisterDevice(cabinet)}
@@ -382,7 +365,11 @@ export default function Cabinets() {
       )}
 
       {/* Modals */}
-      <AddCabinetModal isOpen={addModal.isOpen} onClose={addModal.onClose} onSuccess={loadCabinets} />
+      <AddCabinetModal
+        isOpen={addModal.isOpen}
+        onClose={addModal.onClose}
+        onSuccess={loadCabinets}
+      />
       {selectedCabinet && (
         <>
           <EditCabinetModal
@@ -397,12 +384,14 @@ export default function Cabinets() {
             cabinet={selectedCabinet}
             onSuccess={handleDeleteSuccess}
           />
-          <DeviceRegistrationModal
-            isOpen={deviceRegModal.isOpen}
-            onClose={deviceRegModal.onClose}
-            onSuccess={loadCabinets}
-            cabinetId={selectedCabinet.cabinet_id}
-          />
+          {enableDeviceRegistration && (
+            <DeviceRegistrationModal
+              isOpen={deviceRegModal.isOpen}
+              onClose={deviceRegModal.onClose}
+              onSuccess={loadCabinets}
+              cabinetId={selectedCabinet.cabinet_id}
+            />
+          )}
         </>
       )}
     </Box>

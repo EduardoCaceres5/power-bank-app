@@ -16,5 +16,3 @@ export const normalizeCabinet = (cabinet: RawCabinet): Cabinet => ({
   lastPingAt: cabinet.lastPingAt ?? cabinet.last_ping_at,
   signalStrength: cabinet.signalStrength ?? cabinet.signal_strength,
 });
-
-

@@ -29,6 +29,10 @@ import type {
   CabinetStats,
   DashboardOverview,
   Alert,
+  Rental,
+  CreateRentalRequest,
+  RentalListResponse,
+  RentalDetailResponse,
 } from '@/types/api.types';
 
 class ApiService {
@@ -346,6 +350,50 @@ class ApiService {
     const response = await this.client.get('/cabinets/nearby', {
       params: { latitude, longitude, radius },
     });
+    return response.data;
+  }
+
+  // ==================== RENTALS ====================
+
+  async createRental(data: CreateRentalRequest): Promise<ApiResponse<Rental>> {
+    const response = await this.client.post('/rentals', data);
+    return response.data;
+  }
+
+  async getRentals(params?: { status?: string }): Promise<RentalListResponse> {
+    const response = await this.client.get('/rentals', { params });
+    return response.data;
+  }
+
+  async getActiveRental(): Promise<ApiResponse<Rental>> {
+    const response = await this.client.get('/rentals/active');
+    return response.data;
+  }
+
+  async getRentalById(rentalId: string): Promise<RentalDetailResponse> {
+    const response = await this.client.get(`/rentals/${rentalId}`);
+    return response.data;
+  }
+
+  async completeRental(rentalId: string): Promise<ApiResponse<Rental>> {
+    const response = await this.client.post(`/rentals/${rentalId}/complete`);
+    return response.data;
+  }
+
+  async reportLostRental(rentalId: string): Promise<ApiResponse> {
+    const response = await this.client.post(`/rentals/${rentalId}/report-lost`);
+    return response.data;
+  }
+
+  // Admin: Get all rentals with filters
+  async getAdminRentals(params?: {
+    page?: number;
+    page_size?: number;
+    status?: string;
+    userId?: string;
+    cabinetId?: string;
+  }): Promise<ApiResponse<{ rentals: Rental[]; total: number }>> {
+    const response = await this.client.get('/admin/rentals', { params });
     return response.data;
   }
 }

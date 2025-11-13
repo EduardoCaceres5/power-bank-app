@@ -8,7 +8,7 @@ export interface ApiResponse<T = unknown> {
 
 // Cabinet Types
 export interface Cabinet {
-  id: number;
+  id?: number;
   cabinet_id: string;
   qrcode: string;
   model: 'pm8' | 'pm12' | 'pm20';
@@ -17,7 +17,7 @@ export interface Cabinet {
   address?: string;
   latitude?: number;
   longitude?: number;
-  created_at: string;
+  created_at?: string;
   updated_at?: string;
 
   // Device monitoring fields
@@ -26,13 +26,22 @@ export interface Cabinet {
   ipAddress?: string;
   connectionType?: 'wifi' | 'ethernet' | '4g';
   deviceId?: string;
+
+  // API response fields
+  heart_time: number; // Unix timestamp in seconds
+  ip: string;
+  mode?: number;
+  return_num?: number;
+  borrow_num?: number;
 }
 
 export interface CabinetListResponse {
   total: number;
-  page: number;
-  page_size: number;
+  page?: number;
+  page_size?: number;
   list: Cabinet[];
+  online_num: number;
+  offline_num: number;
 }
 
 export interface AddCabinetRequest {
@@ -44,25 +53,30 @@ export interface AddCabinetRequest {
 
 export interface CabinetDetails {
   cabinet_id: string;
-  slots: SlotInfo[];
+  is_online: 0 | 1;
+  signal: 0 | 1;
+  device: DeviceInfo[];
 }
 
-export interface SlotInfo {
-  lock_id: number;
-  status: number;
-  battery_power?: number;
-  battery_id?: string;
+export interface DeviceInfo {
+  bid: string;
+  power: number;
+  quick_charge: number;
+  lock: number;
+  fault: boolean;
 }
 
 // Battery Types
 export interface Battery {
-  id: number;
-  battery_id: string;
-  power: number;
-  status: string;
+  id?: number;
+  device_id: string;
+  battery_id?: string; // Deprecated, use device_id
+  power?: number;
+  status?: string;
   cabinet_id?: string;
   lock_id?: number;
-  created_at: string;
+  create_time: number; // Unix timestamp in seconds
+  created_at?: string; // Deprecated, use create_time
 }
 
 export interface BatteryListResponse {
@@ -381,7 +395,12 @@ export interface DashboardOverview {
 // Alert Types
 export interface Alert {
   id: string;
-  type: 'offline_cabinet' | 'overdue_rental' | 'low_battery' | 'damaged_powerbank' | 'maintenance_cabinet';
+  type:
+    | 'offline_cabinet'
+    | 'overdue_rental'
+    | 'low_battery'
+    | 'damaged_powerbank'
+    | 'maintenance_cabinet';
   severity: 'critical' | 'warning' | 'info';
   message: string;
   cabinetId?: string;
@@ -396,4 +415,79 @@ export interface CabinetWithStats extends Cabinet {
   availablePowerBanks?: number;
   totalSlots?: number;
   status?: 'ONLINE' | 'OFFLINE' | 'MAINTENANCE' | 'OUT_OF_SERVICE';
+}
+
+// Rental Types
+export type RentalStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'OVERDUE' | 'LOST';
+export type TransactionType = 'RENTAL' | 'DEPOSIT' | 'REFUND' | 'LATE_FEE' | 'LOST_FEE';
+export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'REFUNDED';
+
+export interface PowerBank {
+  id: string;
+  serialNumber: string;
+  model?: string;
+  batteryCapacity?: number;
+  status: 'AVAILABLE' | 'RENTED' | 'CHARGING' | 'MAINTENANCE' | 'LOST' | 'DAMAGED';
+  batteryLevel?: number;
+  cabinetId?: string;
+  slotNumber?: number;
+  totalRentals?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Transaction {
+  id: string;
+  userId: string;
+  rentalId?: string;
+  amount: number;
+  currency: string;
+  status: TransactionStatus;
+  type: TransactionType;
+  description?: string;
+  pagoparTransactionId?: string;
+  stripePaymentIntentId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Rental {
+  id: string;
+  userId: string;
+  cabinetId: string;
+  powerBankId: string;
+  rentalCabinetId: string;
+  returnCabinetId?: string;
+  rentedAt: string;
+  returnedAt?: string;
+  dueAt?: string;
+  basePrice: number;
+  lateFee?: number;
+  totalAmount?: number;
+  status: RentalStatus;
+  powerBank?: PowerBank;
+  cabinet?: Cabinet;
+  transactions?: Transaction[];
+  user?: {
+    id: string;
+    email: string;
+    fullName?: string;
+  };
+}
+
+export interface CreateRentalRequest {
+  userId?: string; // Opcional para admin, puede crear para cualquier usuario
+  cabinetId: string;
+  slotNumber: number;
+  paymentMethod?: 'pagopar' | 'stripe' | 'manual'; // manual = sin pago (solo admin)
+}
+
+export interface RentalListResponse {
+  success: boolean;
+  data: Rental[];
+}
+
+export interface RentalDetailResponse {
+  success: boolean;
+  data: Rental;
 }

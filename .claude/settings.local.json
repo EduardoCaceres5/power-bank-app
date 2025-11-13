@@ -13,7 +13,9 @@
       "Bash(pnpm add:*)",
       "Bash(chmod:*)",
       "Bash(pnpm list:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(dir)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

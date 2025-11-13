@@ -59,14 +59,20 @@ export default function Batteries() {
   };
 
   const filteredBatteries = batteries.filter((battery) =>
-    battery.battery_id.toLowerCase().includes(searchTerm.toLowerCase())
+    battery.device_id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getPowerColor = (power: number) => {
+  const getPowerColor = (power?: number) => {
+    if (!power) return 'gray';
     if (power >= 80) return 'green';
     if (power >= 50) return 'yellow';
     if (power >= 20) return 'orange';
     return 'red';
+  };
+
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleString('es-PY');
   };
 
   return (
@@ -75,7 +81,7 @@ export default function Batteries() {
       <Flex mb={6} gap={4} align="center" justify="space-between">
         <HStack>
           <Input
-            placeholder="Buscar por ID de Batería"
+            placeholder="Buscar por Device ID"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             maxW="300px"
@@ -108,7 +114,7 @@ export default function Batteries() {
           <Table variant="simple">
             <Thead>
               <Tr>
-                <Th>ID Batería</Th>
+                <Th>Device ID</Th>
                 <Th>Nivel de Carga</Th>
                 <Th>Estado</Th>
                 <Th>Gabinete</Th>
@@ -117,39 +123,49 @@ export default function Batteries() {
               </Tr>
             </Thead>
             <Tbody>
-              {filteredBatteries.map((battery) => (
-                <Tr key={battery.id}>
-                  <Td fontWeight="medium">{battery.battery_id}</Td>
+              {filteredBatteries.map((battery, index) => (
+                <Tr key={battery.id || battery.device_id || index}>
+                  <Td fontWeight="medium">{battery.device_id}</Td>
                   <Td>
-                    <Box>
-                      <Progress
-                        value={battery.power}
-                        colorScheme={getPowerColor(battery.power)}
-                        size="sm"
-                        borderRadius="md"
-                        mb={1}
-                      />
-                      <Box fontSize="xs" color="gray.500">
-                        {battery.power}%
+                    {battery.power !== undefined ? (
+                      <Box>
+                        <Progress
+                          value={battery.power}
+                          colorScheme={getPowerColor(battery.power)}
+                          size="sm"
+                          borderRadius="md"
+                          mb={1}
+                        />
+                        <Box fontSize="xs" color="gray.500">
+                          {battery.power}%
+                        </Box>
                       </Box>
-                    </Box>
+                    ) : (
+                      <Box fontSize="sm" color="gray.500">
+                        N/A
+                      </Box>
+                    )}
                   </Td>
                   <Td>
-                    <Badge
-                      colorScheme={
-                        battery.status === 'available'
-                          ? 'green'
-                          : battery.status === 'in_use'
-                            ? 'blue'
-                            : 'gray'
-                      }
-                    >
-                      {battery.status}
-                    </Badge>
+                    {battery.status ? (
+                      <Badge
+                        colorScheme={
+                          battery.status === 'available'
+                            ? 'green'
+                            : battery.status === 'in_use'
+                              ? 'blue'
+                              : 'gray'
+                        }
+                      >
+                        {battery.status}
+                      </Badge>
+                    ) : (
+                      <Badge colorScheme="gray">unknown</Badge>
+                    )}
                   </Td>
                   <Td>{battery.cabinet_id || '-'}</Td>
                   <Td>{battery.lock_id ? `Ranura ${battery.lock_id}` : '-'}</Td>
-                  <Td>{new Date(battery.created_at).toLocaleDateString()}</Td>
+                  <Td>{formatTimestamp(battery.create_time)}</Td>
                 </Tr>
               ))}
             </Tbody>
