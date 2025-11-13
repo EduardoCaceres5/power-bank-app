@@ -10,7 +10,6 @@ import {
   Text,
   Badge,
   Stack,
-  ButtonGroup,
   Grid,
   GridItem,
   Card,
@@ -30,8 +29,18 @@ import {
   SimpleGrid,
   useDisclosure,
   useColorModeValue,
-  Wrap,
-  WrapItem,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  IconButton,
 } from '@chakra-ui/react';
 import {
   ArrowBackIcon,
@@ -42,6 +51,8 @@ import {
   CheckCircleIcon,
   SettingsIcon,
   AddIcon,
+  ChevronDownIcon,
+  WarningIcon,
 } from '@chakra-ui/icons';
 import { FaWifi, FaBatteryFull, FaNetworkWired, FaMobile, FaBatteryEmpty } from 'react-icons/fa';
 import { apiService } from '@/services/api';
@@ -75,6 +86,9 @@ export default function CabinetDetailsPage() {
 
   const deviceRegModal = useDisclosure();
   const rentalModal = useDisclosure();
+  const openAllDialog = useDisclosure();
+  const restartDialog = useDisclosure();
+  const cancelRef = useState<HTMLButtonElement>(null)[0];
 
   const fetchData = async () => {
     if (!cabinetId) return;
@@ -136,6 +150,7 @@ export default function CabinetDetailsPage() {
     if (!cabinetId) return;
 
     try {
+      openAllDialog.onClose();
       const response = await apiService.openAllSlots(cabinetId);
       if (response.success) {
         toast({
@@ -158,6 +173,7 @@ export default function CabinetDetailsPage() {
     if (!cabinetId) return;
 
     try {
+      restartDialog.onClose();
       const response = await apiService.restartCabinet(cabinetId);
       if (response.success) {
         toast({
@@ -314,107 +330,155 @@ export default function CabinetDetailsPage() {
               {cabinet.is_online ? 'EN LÍNEA' : 'FUERA DE LÍNEA'}
             </Badge>
           </HStack>
-          {/* Botones en mobile (wrap) */}
-          <Wrap spacing={3} display={{ base: 'flex', md: 'none' }}>
-            <WrapItem>
+
+          {/* Botones reorganizados - Mobile */}
+          <VStack spacing={3} display={{ base: 'flex', md: 'none' }} align="stretch">
+            <HStack spacing={3}>
+              <Tooltip label="Crear un nuevo alquiler para un cliente">
+                <Button
+                  leftIcon={<AddIcon />}
+                  onClick={rentalModal.onOpen}
+                  colorScheme="green"
+                  variant="solid"
+                  size="md"
+                  flex="1"
+                  boxShadow="md"
+                  _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
+                  transition="all 0.2s"
+                  isDisabled={availableBatterySlots.length === 0}
+                  fontWeight="bold"
+                >
+                  Crear Alquiler
+                </Button>
+              </Tooltip>
+              <Tooltip label="Actualizar información del gabinete">
+                <IconButton
+                  icon={<RepeatIcon />}
+                  onClick={fetchData}
+                  isLoading={refreshing}
+                  variant="outline"
+                  colorScheme="brand"
+                  size="md"
+                  aria-label="Actualizar"
+                  boxShadow="sm"
+                  _hover={{ boxShadow: 'md', transform: 'translateY(-1px)' }}
+                  transition="all 0.2s"
+                />
+              </Tooltip>
+            </HStack>
+            <Menu>
+              <Tooltip label="Acciones de mantenimiento avanzadas">
+                <MenuButton
+                  as={Button}
+                  rightIcon={<ChevronDownIcon />}
+                  leftIcon={<SettingsIcon />}
+                  variant="outline"
+                  colorScheme="gray"
+                  size="md"
+                  w="full"
+                  boxShadow="sm"
+                >
+                  Acciones de Mantenimiento
+                </MenuButton>
+              </Tooltip>
+              <MenuList>
+                <MenuItem
+                  icon={<UnlockIcon />}
+                  onClick={openAllDialog.onOpen}
+                  color="orange.600"
+                  _hover={{ bg: 'orange.50' }}
+                >
+                  Abrir Todas las Ranuras
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem
+                  icon={<WarningIcon />}
+                  onClick={restartDialog.onOpen}
+                  color="red.600"
+                  _hover={{ bg: 'red.50' }}
+                >
+                  Reiniciar Gabinete
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </VStack>
+
+          {/* Botones reorganizados - Desktop/Tablet */}
+          <HStack spacing={3} display={{ base: 'none', md: 'flex' }}>
+            <Tooltip label="Crear un nuevo alquiler para un cliente" hasArrow placement="bottom">
               <Button
                 leftIcon={<AddIcon />}
                 onClick={rentalModal.onOpen}
                 colorScheme="green"
                 variant="solid"
-                size="sm"
-                boxShadow="sm"
-                _hover={{ boxShadow: 'md', transform: 'translateY(-1px)' }}
+                size="md"
+                boxShadow="md"
+                _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
+                transition="all 0.2s"
                 isDisabled={availableBatterySlots.length === 0}
+                fontWeight="bold"
+                px={6}
               >
                 Crear Alquiler
               </Button>
-            </WrapItem>
-            <WrapItem>
+            </Tooltip>
+
+            <Box w="1px" h="40px" bg="gray.300" />
+
+            <Tooltip label="Actualizar información del gabinete" hasArrow placement="bottom">
               <Button
                 leftIcon={<RepeatIcon />}
                 onClick={fetchData}
                 isLoading={refreshing}
-                variant="solid"
+                variant="outline"
                 colorScheme="brand"
-                size="sm"
+                size="md"
                 boxShadow="sm"
                 _hover={{ boxShadow: 'md', transform: 'translateY(-1px)' }}
+                transition="all 0.2s"
               >
                 Actualizar
               </Button>
-            </WrapItem>
-            <WrapItem>
-              <Button
-                leftIcon={<UnlockIcon />}
-                onClick={handleOpenAllSlots}
-                colorScheme="orange"
-                variant="solid"
-                size="sm"
-                boxShadow="sm"
-                _hover={{ boxShadow: 'md', transform: 'translateY(-1px)' }}
-              >
-                Abrir Todas
-              </Button>
-            </WrapItem>
-            <WrapItem>
-              <Button
-                leftIcon={<SettingsIcon />}
-                onClick={handleRestartCabinet}
-                colorScheme="red"
-                variant="solid"
-                size="sm"
-                boxShadow="sm"
-                _hover={{ boxShadow: 'md', transform: 'translateY(-1px)' }}
-              >
-                Reiniciar
-              </Button>
-            </WrapItem>
-          </Wrap>
+            </Tooltip>
 
-          {/* Botones en desktop/tablet (grupo adjunto) */}
-          <ButtonGroup
-            isAttached
-            variant="solid"
-            size="md"
-            spacing={0}
-            display={{ base: 'none', md: 'inline-flex' }}
-          >
-            <Button
-              leftIcon={<AddIcon />}
-              onClick={rentalModal.onOpen}
-              colorScheme="green"
-              _hover={{ boxShadow: 'md' }}
-              isDisabled={availableBatterySlots.length === 0}
-            >
-              Crear Alquiler
-            </Button>
-            <Button
-              leftIcon={<RepeatIcon />}
-              onClick={fetchData}
-              isLoading={refreshing}
-              colorScheme="brand"
-              _hover={{ boxShadow: 'md' }}
-            >
-              Actualizar
-            </Button>
-            <Button
-              leftIcon={<UnlockIcon />}
-              onClick={handleOpenAllSlots}
-              colorScheme="orange"
-              _hover={{ boxShadow: 'md' }}
-            >
-              Abrir Todas
-            </Button>
-            <Button
-              leftIcon={<SettingsIcon />}
-              onClick={handleRestartCabinet}
-              colorScheme="red"
-              _hover={{ boxShadow: 'md' }}
-            >
-              Reiniciar
-            </Button>
-          </ButtonGroup>
+            <Box w="1px" h="40px" bg="gray.300" />
+
+            <Menu>
+              <Tooltip label="Acciones de mantenimiento avanzadas" hasArrow placement="bottom">
+                <MenuButton
+                  as={Button}
+                  rightIcon={<ChevronDownIcon />}
+                  leftIcon={<SettingsIcon />}
+                  variant="outline"
+                  colorScheme="gray"
+                  size="md"
+                  boxShadow="sm"
+                  _hover={{ boxShadow: 'md' }}
+                >
+                  Mantenimiento
+                </MenuButton>
+              </Tooltip>
+              <MenuList>
+                <MenuItem
+                  icon={<UnlockIcon />}
+                  onClick={openAllDialog.onOpen}
+                  color="orange.600"
+                  _hover={{ bg: 'orange.50' }}
+                >
+                  Abrir Todas las Ranuras
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem
+                  icon={<WarningIcon />}
+                  onClick={restartDialog.onOpen}
+                  color="red.600"
+                  _hover={{ bg: 'red.50' }}
+                >
+                  Reiniciar Gabinete
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </HStack>
         </Stack>
 
         {/* Stats */}
@@ -689,6 +753,101 @@ export default function CabinetDetailsPage() {
           availableSlots={availableBatterySlots}
         />
       )}
+
+      {/* Confirmation Dialog - Open All Slots */}
+      <AlertDialog
+        isOpen={openAllDialog.isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={openAllDialog.onClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              <HStack spacing={2}>
+                <Icon as={UnlockIcon} color="orange.500" />
+                <Text>Abrir Todas las Ranuras</Text>
+              </HStack>
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              <VStack align="stretch" spacing={3}>
+                <Text>
+                  ¿Estás seguro de que deseas abrir <strong>todas las ranuras</strong> del gabinete{' '}
+                  <strong>{cabinet.cabinet_id}</strong>?
+                </Text>
+                <Alert status="warning" borderRadius="md">
+                  <AlertIcon />
+                  <Box>
+                    <AlertTitle fontSize="sm">Acción de Mantenimiento</AlertTitle>
+                    <AlertDescription fontSize="sm">
+                      Esta acción abrirá todas las ranuras simultáneamente. Úsala solo para tareas
+                      de mantenimiento.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
+              </VStack>
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={openAllDialog.onClose}>
+                Cancelar
+              </Button>
+              <Button colorScheme="orange" onClick={handleOpenAllSlots} ml={3}>
+                Confirmar y Abrir
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      {/* Confirmation Dialog - Restart Cabinet */}
+      <AlertDialog
+        isOpen={restartDialog.isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={restartDialog.onClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              <HStack spacing={2}>
+                <Icon as={WarningIcon} color="red.500" />
+                <Text>Reiniciar Gabinete</Text>
+              </HStack>
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              <VStack align="stretch" spacing={3}>
+                <Text>
+                  ¿Estás seguro de que deseas reiniciar el gabinete{' '}
+                  <strong>{cabinet.cabinet_id}</strong>?
+                </Text>
+                <Alert status="error" borderRadius="md">
+                  <AlertIcon />
+                  <Box>
+                    <AlertTitle fontSize="sm">Acción Crítica</AlertTitle>
+                    <AlertDescription fontSize="sm">
+                      El gabinete se desconectará temporalmente y todos los procesos en curso
+                      podrían verse afectados. Esta acción debe usarse solo en casos de
+                      emergencia o mantenimiento crítico.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
+              </VStack>
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={restartDialog.onClose}>
+                Cancelar
+              </Button>
+              <Button colorScheme="red" onClick={handleRestartCabinet} ml={3}>
+                Confirmar y Reiniciar
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Container>
   );
 }
