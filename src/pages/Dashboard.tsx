@@ -296,13 +296,6 @@ export default function Dashboard() {
       icon: MdCalendarToday,
       color: 'purple',
     },
-    {
-      label: 'Estado del Sistema',
-      value: 'Saludable',
-      helpText: 'Todos los sistemas operativos',
-      icon: MdCheckCircle,
-      color: 'teal',
-    },
   ];
 
   return (
