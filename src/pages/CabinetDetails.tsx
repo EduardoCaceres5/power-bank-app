@@ -93,11 +93,24 @@ export default function CabinetDetailsPage() {
   const restartDialog = useDisclosure();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const fetchData = async () => {
+  const fetchData = async (showToast = false) => {
     if (!cabinetId) return;
+
+    let loadingToastId: string | number | undefined;
 
     try {
       setRefreshing(true);
+
+      if (showToast) {
+        loadingToastId = toast({
+          title: 'Actualizando información...',
+          description: 'Por favor espera',
+          status: 'info',
+          duration: null,
+          isClosable: false,
+        });
+      }
+
       const [infoResponse, detailsResponse] = await Promise.all([
         apiService.getCabinetInfo(cabinetId),
         apiService.getCabinetDetails(cabinetId),
@@ -110,7 +123,19 @@ export default function CabinetDetailsPage() {
       if (detailsResponse.success && detailsResponse.data) {
         setCabinetDetails(detailsResponse.data);
       }
+
+      if (showToast && loadingToastId) {
+        toast.close(loadingToastId);
+        toast({
+          title: 'Información actualizada',
+          status: 'success',
+          duration: 2000,
+        });
+      }
     } catch (error) {
+      if (loadingToastId) {
+        toast.close(loadingToastId);
+      }
       toast({
         title: 'Error al cargar detalles',
         description: error instanceof Error ? error.message : 'Error desconocido',
@@ -411,7 +436,7 @@ export default function CabinetDetailsPage() {
               <Tooltip label="Actualizar información del gabinete">
                 <IconButton
                   icon={<RepeatIcon />}
-                  onClick={fetchData}
+                  onClick={() => fetchData(true)}
                   isLoading={refreshing}
                   variant="outline"
                   colorScheme="brand"
@@ -488,7 +513,7 @@ export default function CabinetDetailsPage() {
             <Tooltip label="Actualizar información del gabinete" hasArrow placement="bottom">
               <Button
                 leftIcon={<RepeatIcon />}
-                onClick={fetchData}
+                onClick={() => fetchData(true)}
                 isLoading={refreshing}
                 variant="outline"
                 colorScheme="brand"
