@@ -83,6 +83,9 @@ export default function CabinetDetailsPage() {
   const [cabinetDetails, setCabinetDetails] = useState<CabinetDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [openingSlot, setOpeningSlot] = useState<number | null>(null);
+  const [openingAllSlots, setOpeningAllSlots] = useState(false);
+  const [restartingCabinet, setRestartingCabinet] = useState(false);
 
   const deviceRegModal = useDisclosure();
   const rentalModal = useDisclosure();
@@ -127,68 +130,122 @@ export default function CabinetDetailsPage() {
   const handleOpenSlot = async (lockId: number) => {
     if (!cabinetId) return;
 
+    const loadingToastId = toast({
+      title: `Abriendo ranura ${lockId}...`,
+      description: 'Por favor espera',
+      status: 'info',
+      duration: null,
+      isClosable: false,
+    });
+
+    setOpeningSlot(lockId);
+
     try {
       const response = await apiService.openSlot(cabinetId, lockId);
+      toast.close(loadingToastId);
+
       if (response.success) {
         toast({
           title: `Ranura ${lockId} abierta`,
           status: 'success',
           duration: 3000,
         });
+
+        // Actualizar información del gabinete
+        await fetchData();
       }
     } catch (error) {
+      toast.close(loadingToastId);
       toast({
         title: 'Error al abrir ranura',
         description: error instanceof Error ? error.message : 'Error desconocido',
         status: 'error',
         duration: 5000,
       });
+    } finally {
+      setOpeningSlot(null);
     }
   };
 
   const handleOpenAllSlots = async () => {
     if (!cabinetId) return;
 
+    openAllDialog.onClose();
+
+    const loadingToastId = toast({
+      title: 'Abriendo todas las ranuras...',
+      description: 'Esta operación puede tardar unos segundos',
+      status: 'info',
+      duration: null,
+      isClosable: false,
+    });
+
+    setOpeningAllSlots(true);
+
     try {
-      openAllDialog.onClose();
       const response = await apiService.openAllSlots(cabinetId);
+      toast.close(loadingToastId);
+
       if (response.success) {
         toast({
           title: 'Todas las ranuras abiertas',
           status: 'success',
           duration: 3000,
         });
+
+        // Actualizar información del gabinete
+        await fetchData();
       }
     } catch (error) {
+      toast.close(loadingToastId);
       toast({
         title: 'Error al abrir ranuras',
         description: error instanceof Error ? error.message : 'Error desconocido',
         status: 'error',
         duration: 5000,
       });
+    } finally {
+      setOpeningAllSlots(false);
     }
   };
 
   const handleRestartCabinet = async () => {
     if (!cabinetId) return;
 
+    restartDialog.onClose();
+
+    const loadingToastId = toast({
+      title: 'Reiniciando gabinete...',
+      description: 'El gabinete se desconectará temporalmente',
+      status: 'loading',
+      duration: null,
+      isClosable: false,
+    });
+
+    setRestartingCabinet(true);
+
     try {
-      restartDialog.onClose();
       const response = await apiService.restartCabinet(cabinetId);
+      toast.close(loadingToastId);
+
       if (response.success) {
         toast({
           title: 'Gabinete reiniciado',
+          description: 'El gabinete volverá en línea en unos momentos',
           status: 'success',
-          duration: 3000,
+          duration: 5000,
         });
       }
     } catch (error) {
+      toast.close(loadingToastId);
       toast({
         title: 'Error al reiniciar',
         description: error instanceof Error ? error.message : 'Error desconocido',
         status: 'error',
         duration: 5000,
       });
+    } finally {
+      setRestartingCabinet(false);
     }
   };
 
@@ -377,6 +434,7 @@ export default function CabinetDetailsPage() {
                   size="md"
                   w="full"
                   boxShadow="sm"
+                  isDisabled={openingSlot !== null || openingAllSlots || restartingCabinet}
                 >
                   Acciones de Mantenimiento
                 </MenuButton>
@@ -387,6 +445,7 @@ export default function CabinetDetailsPage() {
                   onClick={openAllDialog.onOpen}
                   color="orange.600"
                   _hover={{ bg: 'orange.50' }}
+                  isDisabled={openingSlot !== null || openingAllSlots || restartingCabinet}
                 >
                   Abrir Todas las Ranuras
                 </MenuItem>
@@ -396,6 +455,7 @@ export default function CabinetDetailsPage() {
                   onClick={restartDialog.onOpen}
                   color="red.600"
                   _hover={{ bg: 'red.50' }}
+                  isDisabled={openingSlot !== null || openingAllSlots || restartingCabinet}
                 >
                   Reiniciar Gabinete
                 </MenuItem>
@@ -454,6 +514,7 @@ export default function CabinetDetailsPage() {
                   size="md"
                   boxShadow="sm"
                   _hover={{ boxShadow: 'md' }}
+                  isDisabled={openingSlot !== null || openingAllSlots || restartingCabinet}
                 >
                   Mantenimiento
                 </MenuButton>
@@ -464,6 +525,7 @@ export default function CabinetDetailsPage() {
                   onClick={openAllDialog.onOpen}
                   color="orange.600"
                   _hover={{ bg: 'orange.50' }}
+                  isDisabled={openingSlot !== null || openingAllSlots || restartingCabinet}
                 >
                   Abrir Todas las Ranuras
                 </MenuItem>
@@ -473,6 +535,7 @@ export default function CabinetDetailsPage() {
                   onClick={restartDialog.onOpen}
                   color="red.600"
                   _hover={{ bg: 'red.50' }}
+                  isDisabled={openingSlot !== null || openingAllSlots || restartingCabinet}
                 >
                   Reiniciar Gabinete
                 </MenuItem>
@@ -698,6 +761,9 @@ export default function CabinetDetailsPage() {
                                   w="full"
                                   fontSize={{ base: 'xs', md: 'sm' }}
                                   leftIcon={<UnlockIcon />}
+                                  isLoading={openingSlot === slotNumber}
+                                  isDisabled={openingSlot !== null || openingAllSlots || restartingCabinet}
+                                  loadingText="Abriendo"
                                 >
                                   Abrir
                                 </Button>
@@ -790,10 +856,16 @@ export default function CabinetDetailsPage() {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={openAllDialog.onClose}>
+              <Button ref={cancelRef} onClick={openAllDialog.onClose} isDisabled={openingAllSlots}>
                 Cancelar
               </Button>
-              <Button colorScheme="orange" onClick={handleOpenAllSlots} ml={3}>
+              <Button
+                colorScheme="orange"
+                onClick={handleOpenAllSlots}
+                ml={3}
+                isLoading={openingAllSlots}
+                loadingText="Abriendo..."
+              >
                 Confirmar y Abrir
               </Button>
             </AlertDialogFooter>
@@ -838,10 +910,16 @@ export default function CabinetDetailsPage() {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={restartDialog.onClose}>
+              <Button ref={cancelRef} onClick={restartDialog.onClose} isDisabled={restartingCabinet}>
                 Cancelar
               </Button>
-              <Button colorScheme="red" onClick={handleRestartCabinet} ml={3}>
+              <Button
+                colorScheme="red"
+                onClick={handleRestartCabinet}
+                ml={3}
+                isLoading={restartingCabinet}
+                loadingText="Reiniciando..."
+              >
                 Confirmar y Reiniciar
               </Button>
             </AlertDialogFooter>
