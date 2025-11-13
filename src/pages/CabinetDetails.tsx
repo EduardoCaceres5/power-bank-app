@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -91,7 +91,7 @@ export default function CabinetDetailsPage() {
   const rentalModal = useDisclosure();
   const openAllDialog = useDisclosure();
   const restartDialog = useDisclosure();
-  const cancelRef = useState<HTMLButtonElement>(null)[0];
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   const fetchData = async () => {
     if (!cabinetId) return;
