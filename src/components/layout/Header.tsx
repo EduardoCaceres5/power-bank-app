@@ -14,6 +14,7 @@ import {
   Text,
   Badge,
   useToast,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { MdBrightness4, MdBrightness7, MdNotifications, MdPerson, MdLogout } from 'react-icons/md';
 import { useLocation } from 'react-router-dom';
@@ -26,6 +27,7 @@ export default function Header() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const toast = useToast();
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -64,13 +66,14 @@ export default function Header() {
       as="header"
       h="70px"
       px={6}
+      pl={isMobile ? '60px' : 6}
       align="center"
       justify="space-between"
       bg={bgColor}
       borderBottom="1px"
       borderColor={borderColor}
     >
-      <Heading size="md">{getPageTitle()}</Heading>
+      <Heading size="md" fontSize={isMobile ? 'lg' : 'xl'}>{getPageTitle()}</Heading>
 
       <HStack spacing={3}>
         {/* Color Mode Toggle */}
