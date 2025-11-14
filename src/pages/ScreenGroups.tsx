@@ -112,7 +112,16 @@ export default function ScreenGroups() {
   };
 
   const calculateMaterialCount = (group: Group): number => {
-    return group.material_count || 0;
+    // Try to get count from material_count, or from details array if available
+    if (group.material_count !== undefined) {
+      return group.material_count;
+    }
+    // Check if details array exists (might not be typed but could be in response)
+    const groupWithDetails = group as Group & { details?: unknown[] };
+    if (groupWithDetails.details && Array.isArray(groupWithDetails.details)) {
+      return groupWithDetails.details.length;
+    }
+    return 0;
   };
 
   return (

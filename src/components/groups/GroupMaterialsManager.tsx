@@ -17,6 +17,7 @@ import {
   Badge,
   Image,
   useToast,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { MdAdd, MdDelete, MdArrowUpward, MdArrowDownward } from 'react-icons/md';
@@ -34,6 +35,12 @@ export function GroupMaterialsManager({ value, onChange }: GroupMaterialsManager
   const [loading, setLoading] = useState(false);
   const [selectedMaterialId, setSelectedMaterialId] = useState<number | ''>('');
   const [duration, setDuration] = useState<number>(5);
+
+  const emptyBgColor = useColorModeValue('gray.50', 'gray.700');
+  const emptyTextColor = useColorModeValue('gray.500', 'gray.400');
+  const emptyDescColor = useColorModeValue('gray.400', 'gray.500');
+  const materialCardBg = useColorModeValue('white', 'gray.700');
+  const materialCardBorderColor = useColorModeValue('gray.200', 'gray.600');
 
   useEffect(() => {
     loadMaterials();
@@ -178,9 +185,9 @@ export function GroupMaterialsManager({ value, onChange }: GroupMaterialsManager
         </Text>
 
         {value.length === 0 ? (
-          <Box p={4} bg="gray.50" borderRadius="md" textAlign="center">
-            <Text color="gray.500">No hay materiales en este grupo</Text>
-            <Text fontSize="sm" color="gray.400" mt={1}>
+          <Box p={4} bg={emptyBgColor} borderRadius="md" textAlign="center">
+            <Text color={emptyTextColor}>No hay materiales en este grupo</Text>
+            <Text fontSize="sm" color={emptyDescColor} mt={1}>
               Agrega materiales usando el formulario de arriba
             </Text>
           </Box>
@@ -192,8 +199,9 @@ export function GroupMaterialsManager({ value, onChange }: GroupMaterialsManager
                 <Box
                   key={index}
                   p={3}
-                  bg="white"
+                  bg={materialCardBg}
                   borderWidth="1px"
+                  borderColor={materialCardBorderColor}
                   borderRadius="md"
                   shadow="sm"
                 >
