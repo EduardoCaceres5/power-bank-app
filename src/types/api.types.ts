@@ -90,43 +90,47 @@ export interface BatteryListResponse {
 export interface Material {
   id: number;
   name: string;
-  path: string;
+  file: string; // Backend returns "file" not "path"
   type: 'image' | 'video';
-  created_at: string;
+  seconds: number;
+  create_time: number; // Unix timestamp
 }
 
 export interface MaterialListResponse {
   total: number;
-  page: number;
-  page_size: number;
   list: Material[];
 }
 
 export interface AddMaterialRequest {
-  name: string;
-  path: string;
+  name?: string;
+  path: string; // Backend expects "path" for upload, returns "file" in response
   type: 'image' | 'video';
 }
 
 export interface Group {
   id: number;
-  name: string;
-  created_at: string;
+  group_name: string;
+  create_time: number; // Unix timestamp
   material_count?: number;
 }
 
 export interface GroupDetail {
   id: number;
-  name: string;
-  details: GroupMaterialDetail[];
+  group_name: string;
+  details: GroupMaterialDetailWithInfo[];
+  create_time: number;
 }
 
 export interface GroupMaterialDetail {
   material_id: number;
-  material_name?: string;
-  material_path?: string;
   sort: number;
   time: number;
+}
+
+export interface GroupMaterialDetailWithInfo extends GroupMaterialDetail {
+  name: string;
+  type: 'image' | 'video';
+  file: string;
 }
 
 export interface GroupListResponse {

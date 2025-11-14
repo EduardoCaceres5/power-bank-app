@@ -214,6 +214,20 @@ class ApiService {
     return response.data;
   }
 
+  // ==================== FILE UPLOAD ====================
+
+  async uploadMaterialFile(file: File): Promise<ApiResponse<{ url: string; publicId: string; resourceType: string }>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await this.client.post('/upload/material', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
   // ==================== SCREEN GROUPS ====================
 
   async getGroups(params?: { page?: number }): Promise<ApiResponse<GroupListResponse>> {
